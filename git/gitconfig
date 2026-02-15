@@ -1,0 +1,144 @@
+# =============================================================================
+# Cross-platform Git Configuration for Ubuntu and macOS
+# Based on misc_config project
+# =============================================================================
+
+[user]
+    name = Andy Tian
+    email = andy.tian@cixtech.com
+
+[core]
+    # Default editor
+    editor = vim
+    # Use less with better options
+    pager = less -F -X
+    # Auto-convert line endings on Windows
+    # autocrlf = input
+    # Ignore file mode changes
+    filemode = false
+    # Enable parallel index preload
+    preloadindex = true
+
+[color]
+    # Enable colors
+    ui = auto
+
+[color "branch"]
+    current = yellow reverse
+    local = yellow
+    remote = green
+
+[color "diff"]
+    meta = yellow bold
+    frag = magenta bold
+    old = red bold
+    new = green bold
+
+[color "status"]
+    added = yellow
+    changed = green
+    untracked = cyan
+
+[alias]
+    # Pretty log with graph
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cblue%cn, %cd%Creset' --abbrev-commit --date=short
+    # Compact log
+    lol = log --oneline --graph --decorate
+    # Log with stats
+    ll = log --stat --abbrev-commit
+    # Short status
+    st = status -s
+    # Branch list
+    br = branch
+    # Branch with verbose
+    bv = branch -vv
+    # Checkout
+    co = checkout
+    # Commit
+    ci = commit
+    # Diff tool
+    dt = difftool
+    # Merge tool
+    mt = mergetool
+    # Show untracked files
+    untracked = ls-files --others --exclude-standard
+    # Amend last commit
+    amend = commit --amend --no-edit
+    # Push force with lease (safer)
+    pf = push --force-with-lease
+    # Fetch and prune
+    fp = fetch --prune
+    # Pull rebase
+    pr = pull --rebase
+    # Stash with message
+    save = stash push -m
+    # Stash list
+    sl = stash list
+    # Stash pop
+    sp = stash pop
+    # Stash show
+    ss = stash show -p
+
+[diff]
+    # Default diff tool
+    tool = vimdiff
+    # Use histogram algorithm
+    algorithm = histogram
+    # Detect renames
+    renames = copies
+
+[difftool]
+    # Don't prompt before opening
+    prompt = false
+
+[merge]
+    # Default merge tool
+    tool = vimdiff
+    # Show common ancestor
+    conflictstyle = diff3
+
+[mergetool]
+    # Don't prompt before opening
+    prompt = false
+    # Don't keep backup files
+    keepBackup = false
+
+[pull]
+    # Rebase on pull by default
+    rebase = true
+
+[push]
+    # Push only current branch
+    default = simple
+    # Auto-follow tags
+    followTags = true
+
+[fetch]
+    # Prune remote branches
+    prune = true
+
+[rebase]
+    # Auto stash before rebase
+    autoStash = true
+
+[rerere]
+    # Enable reuse recorded resolution
+    enabled = true
+
+[commit]
+    # Template for commit messages
+    # template = ~/.gitmessage
+
+[init]
+    # Default branch name
+    defaultBranch = main
+
+[url "git@github.com:"]
+    # Use SSH for GitHub instead of HTTPS
+    insteadOf = https://github.com/
+
+[credential]
+    # Cache credentials (timeout in seconds)
+    helper = cache --timeout=3600
+
+

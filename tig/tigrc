@@ -1,0 +1,42 @@
+# =============================================================================
+# Cross-platform Tig Configuration for Ubuntu and macOS
+# Based on misc_config project
+# =============================================================================
+
+# =============================================================================
+# Main View Settings
+# =============================================================================
+set main-view = line-number:yes,interval=5 id:no date:default author:full commit-title:yes,graph,refs,overflow=no
+
+# =============================================================================
+# Key Bindings
+# =============================================================================
+bind generic    H       view-help
+bind generic    L       view-log
+bind generic    <C-F>   move-page-down
+bind generic    <C-B>   move-page-up
+bind generic    h       scroll-left
+bind generic    l       scroll-right
+
+# =============================================================================
+# Commit Order and Options
+# =============================================================================
+# Use Git's default (reverse chronological) order
+set commit-order = default
+
+# Limit number of commits loaded by default
+set main-options = -n 1000
+
+# =============================================================================
+# Other Settings
+# =============================================================================
+# Don't show staged and unstaged changes in the main view
+# set show-changes = no
+
+# Use the old and faster but less accurate graph renderer
+# set main-view-commit-title-graph = v1
+
+# =============================================================================
+# Include Theme
+# =============================================================================
+source ~/.tigrc.theme

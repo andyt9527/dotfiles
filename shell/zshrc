@@ -1,0 +1,258 @@
+#!/usr/bin/env zsh
+# =============================================================================
+# Cross-platform Zsh Configuration for Ubuntu and macOS
+# Oh My Zsh + Powerlevel10k Edition
+# Modular Configuration with Separate Aliases and Exports
+# =============================================================================
+
+# =============================================================================
+# Performance Tuning
+# =============================================================================
+# Skip all this for non-interactive shells
+[[ -z "$PS1" ]] && return
+
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# =============================================================================
+# OS Detection
+# =============================================================================
+detect_os() {
+    case "$(uname -s)" in
+        Linux*)     echo "linux";;
+        Darwin*)    echo "macos";;
+        *)          echo "unknown";;
+    esac
+}
+OS=$(detect_os)
+
+# Architecture detection (for Apple Silicon)
+ARCH=$(uname -m)
+
+# =============================================================================
+# Source Environment Variables (Exports)
+# =============================================================================
+ZSH_CONFIG_DIR="${0:A:h}"
+[[ -f "$HOME/.config/zsh/exports.zsh" ]] && source "$HOME/.config/zsh/exports.zsh"
+[[ -f "$ZSH_CONFIG_DIR/exports.zsh" ]] && source "$ZSH_CONFIG_DIR/exports.zsh"
+
+# =============================================================================
+# Oh My Zsh Configuration
+# =============================================================================
+# Theme - Powerlevel10k
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh
+ZSH_THEME="Powerlevel10k/Powerlevel10k"
+
+# Update behavior
+zstyle ':omz:update' mode reminder
+
+# Disable auto-setting terminal title
+DISABLE_AUTO_TITLE="true"
+
+# Enable command auto-correction
+ENABLE_CORRECTION="true"
+
+# Display red dots whilst waiting for completion
+COMPLETION_WAITING_DOTS="true"
+
+# Disable marking untracked files under VCS as dirty (faster)
+DISABLE_UNTRACKED_FILES_DIRTY="true"
+
+# History timestamp format
+HIST_STAMPS="yyyy-mm-dd"
+
+# =============================================================================
+# Plugins
+# =============================================================================
+plugins=(
+    git
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+    zsh-history-substring-search
+    history
+    extract
+    command-not-found
+    sudo
+    copypath
+    copyfile
+    copybuffer
+    dirhistory
+    colored-man-pages
+    web-search
+    urltools
+    bgnotify
+)
+
+# Platform-specific plugins
+if [[ "$OS" == "macos" ]]; then
+    plugins+=(brew macos)
+fi
+
+# Source Oh My Zsh
+source $ZSH/oh-my-zsh.sh
+
+# =============================================================================
+# Powerlevel10k Configuration
+# =============================================================================
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# =============================================================================
+# PATH Configuration (Idempotent)
+# =============================================================================
+path_add() {
+    case ":$PATH:" in
+        *":$1:"*) ;;  # Already in PATH
+        *) PATH="$1:$PATH" ;;
+    esac
+}
+
+# Add local bin
+path_add "$HOME/.local/bin"
+
+# macOS Homebrew
+if [[ "$OS" == "macos" ]]; then
+    if [[ "$ARCH" == "arm64" ]] && [[ -d "/opt/homebrew/bin" ]]; then
+        # Apple Silicon
+        path_add "/opt/homebrew/bin"
+        path_add "/opt/homebrew/sbin"
+        # Add homebrew completions
+        FPATH="/opt/homebrew/share/zsh/site-functions:${FPATH}"
+    elif [[ -d "/usr/local/bin" ]]; then
+        # Intel Mac
+        path_add "/usr/local/bin"
+        path_add "/usr/local/sbin"
+        FPATH="/usr/local/share/zsh/site-functions:${FPATH}"
+    fi
+    
+    # Flutter
+    [[ -d "$HOME/flutter/bin" ]] && path_add "$HOME/flutter/bin"
+    [[ -d "$HOME/fvm/default/bin" ]] && path_add "$HOME/fvm/default/bin"
+    
+    # Android SDK
+    if [[ -n "$ANDROID_HOME" ]]; then
+        path_add "$ANDROID_HOME/emulator"
+        path_add "$ANDROID_HOME/tools"
+        path_add "$ANDROID_HOME/tools/bin"
+        path_add "$ANDROID_HOME/platform-tools"
+    fi
+    
+    # Java
+    if [[ -n "$JAVA_HOME" ]]; then
+        path_add "$JAVA_HOME/bin"
+    fi
+    
+    # Node Version Manager (nvm)
+    [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
+fi
+
+# Linux specific paths
+if [[ "$OS" == "linux" ]]; then
+    # Android SDK
+    if [[ -n "$ANDROID_HOME" ]]; then
+        path_add "$ANDROID_HOME/emulator"
+        path_add "$ANDROID_HOME/tools"
+        path_add "$ANDROID_HOME/tools/bin"
+        path_add "$ANDROID_HOME/platform-tools"
+    fi
+    
+    # Rust
+    [[ -d "$HOME/.cargo/bin" ]] && path_add "$HOME/.cargo/bin"
+    
+    # Go
+    [[ -d "$HOME/go/bin" ]] && path_add "$HOME/go/bin"
+    [[ -d "/usr/local/go/bin" ]] && path_add "/usr/local/go/bin"
+    
+    # Python user packages
+    path_add "$HOME/.local/bin"
+fi
+
+export PATH
+
+# =============================================================================
+# Modern CLI Tools Configuration
+# =============================================================================
+
+# Zoxide (smart cd)
+if command -v zoxide &> /dev/null; then
+    eval "$(zoxide init zsh)"
+fi
+
+# Direnv
+if command -v direnv &> /dev/null; then
+    eval "$(direnv hook zsh)"
+fi
+
+# Mise (formerly rtx) - universal version manager
+if command -v mise &> /dev/null; then
+    eval "$(mise activate zsh)"
+elif [[ -f "$HOME/.local/bin/mise" ]]; then
+    eval "$($HOME/.local/bin/mise activate zsh)"
+fi
+
+# FZF Integration
+[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+
+# =============================================================================
+# Source Aliases
+# =============================================================================
+[[ -f "$HOME/.config/zsh/aliases.zsh" ]] && source "$HOME/.config/zsh/aliases.zsh"
+[[ -f "$ZSH_CONFIG_DIR/aliases.zsh" ]] && source "$ZSH_CONFIG_DIR/aliases.zsh"
+
+# =============================================================================
+# History Configuration
+# =============================================================================
+HISTFILE=~/.zsh_history
+HISTSIZE=100000
+SAVEHIST=100000
+
+setopt EXTENDED_HISTORY          # Write the history file in the ':start:elapsed;command' format
+setopt SHARE_HISTORY             # Share history between all sessions
+setopt HIST_EXPIRE_DUPS_FIRST    # Expire a duplicate event first when trimming history
+setopt HIST_IGNORE_DUPS          # Do not record an event that was just recorded again
+setopt HIST_IGNORE_ALL_DUPS      # Delete an old recorded event if a new event is a duplicate
+setopt HIST_FIND_NO_DUPS         # Do not display a previously found event
+setopt HIST_IGNORE_SPACE         # Do not record an event starting with a space
+setopt HIST_SAVE_NO_DUPS         # Do not write a duplicate event to the history file
+setopt HIST_VERIFY               # Do not execute immediately upon history expansion
+
+# =============================================================================
+# Completion Settings
+# =============================================================================
+
+# Case insensitive completion
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+# Menu selection
+zstyle ':completion:*' menu select
+
+# Fuzzy match mistyped completions
+zstyle ':completion:*' completer _complete _match _approximate
+zstyle ':completion:*:match:*' original only
+zstyle ':completion:*:approximate:*' max-errors 1 numeric
+
+# =============================================================================
+# Key Bindings
+# =============================================================================
+
+# Emacs key bindings (can change to vi if preferred)
+bindkey -e
+
+# History substring search keys
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+bindkey -M vicmd 'k' history-substring-search-up
+bindkey -M vicmd 'j' history-substring-search-down
+
+# Edit command in editor
+autoload -z edit-command-line
+zle -N edit-command-line
+bindkey "\C-x\C-e" edit-command-line
+
+# =============================================================================
+# Local Customizations
+# =============================================================================
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local

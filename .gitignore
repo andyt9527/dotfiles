@@ -1,0 +1,46 @@
+# Backup files
+*.bak
+*.swp
+*.swo
+*~
+
+# Local configs
+.bashrc.local
+.zshrc.local
+.vimrc.local
+.gitconfig-work
+.gitconfig-personal
+
+# Powerlevel10k generated files
+# Note: We track the template p10k.zsh, but user customizations should be local
+# .p10k.zsh is linked from the repo, but users can customize
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Vim
+.netrwhist
+*.un~
+Session.vim
+
+# Temp files
+*.tmp
+*.temp
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Logs
+*.log

@@ -1,0 +1,4 @@
+[submodule "space-vim"]
+	path = space-vim
+	url = https://github.com/andyt9527/space-vim.git
+	ignore = untracked
