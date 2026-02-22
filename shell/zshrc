@@ -36,8 +36,9 @@ ARCH=$(uname -m)
 # =============================================================================
 # Source Environment Variables (Exports)
 # =============================================================================
+# Get the directory where this script is located (resolves symlinks)
 ZSH_CONFIG_DIR="${0:A:h}"
-[[ -f "$HOME/.config/zsh/exports.zsh" ]] && source "$HOME/.config/zsh/exports.zsh"
+# Source exports directly from dotfiles
 [[ -f "$ZSH_CONFIG_DIR/exports.zsh" ]] && source "$ZSH_CONFIG_DIR/exports.zsh"
 
 # =============================================================================
@@ -54,7 +55,7 @@ zstyle ':omz:update' mode reminder
 DISABLE_AUTO_TITLE="true"
 
 # Enable command auto-correction
-ENABLE_CORRECTION="true"
+#ENABLE_CORRECTION="true"
 
 # Display red dots whilst waiting for completion
 COMPLETION_WAITING_DOTS="true"
@@ -199,7 +200,7 @@ fi
 # =============================================================================
 # Source Aliases
 # =============================================================================
-[[ -f "$HOME/.config/zsh/aliases.zsh" ]] && source "$HOME/.config/zsh/aliases.zsh"
+# Source aliases directly from dotfiles
 [[ -f "$ZSH_CONFIG_DIR/aliases.zsh" ]] && source "$ZSH_CONFIG_DIR/aliases.zsh"
 
 # =============================================================================

@@ -88,21 +88,21 @@ fi
 # Android SDK
 # =============================================================================
 # macOS
-if [[ "$OSTYPE" == "darwin"* ]] && [[ -d "$HOME/Library/Android/sdk" ]]; then
-    export ANDROID_HOME="$HOME/Library/Android/sdk"
-fi
+#if [[ "$OSTYPE" == "darwin"* ]] && [[ -d "$HOME/Library/Android/sdk" ]]; then
+#    export ANDROID_HOME="$HOME/Library/Android/sdk"
+#fi
 
 # Linux
-if [[ "$OSTYPE" == "linux-gnu"* ]] && [[ -d "$HOME/Android/Sdk" ]]; then
-    export ANDROID_HOME="$HOME/Android/Sdk"
-fi
+#if [[ "$OSTYPE" == "linux-gnu"* ]] && [[ -d "$HOME/Android/Sdk" ]]; then
+#    export ANDROID_HOME="$HOME/Android/Sdk"
+#fi
 
 # =============================================================================
 # Java Home (macOS - auto-detect latest)
 # =============================================================================
-if [[ "$OSTYPE" == "darwin"* ]] && [[ -d "/Library/Java/JavaVirtualMachines" ]]; then
-    latest_java=$(ls /Library/Java/JavaVirtualMachines 2>/dev/null | sort -V | tail -1)
-    if [[ -n "$latest_java" ]]; then
-        export JAVA_HOME="/Library/Java/JavaVirtualMachines/${latest_java}/Contents/Home"
-    fi
-fi
+#if [[ "$OSTYPE" == "darwin"* ]] && [[ -d "/Library/Java/JavaVirtualMachines" ]]; then
+#    latest_java=$(ls /Library/Java/JavaVirtualMachines 2>/dev/null | sort -V | tail -1)
+#    if [[ -n "$latest_java" ]]; then
+#        export JAVA_HOME="/Library/Java/JavaVirtualMachines/${latest_java}/Contents/Home"
+#    fi
+#fi

@@ -29,10 +29,10 @@ git submodule update --remote
 if [ -d "$HOME/.oh-my-zsh" ]; then
     info "Updating Oh My Zsh..."
     omz update || true
-    
+
     # Update custom plugins
     ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-    
+
     for plugin_dir in "$ZSH_CUSTOM/plugins"/*; do
         if [ -d "$plugin_dir/.git" ]; then
             info "Updating plugin: $(basename "$plugin_dir")"
@@ -51,7 +51,7 @@ fi
 if [ -d "$HOME/.tmux/plugins/tpm" ]; then
     info "Updating Tmux Plugin Manager..."
     cd "$HOME/.tmux/plugins/tpm" && git pull
-    
+
     info "Updating Tmux plugins..."
     "$HOME/.tmux/plugins/tpm/bin/update_plugins" all
 fi

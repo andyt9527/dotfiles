@@ -52,13 +52,13 @@ backup_file() {
 # Install prerequisites
 install_prerequisites() {
     info "Installing prerequisites..."
-    
+
     if [ "$OS" = "macos" ]; then
         # Check for Homebrew
         if ! command_exists brew; then
             info "Installing Homebrew..."
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            
+
             # Add Homebrew to PATH for this session
             if [ -d "/opt/homebrew/bin" ]; then
                 eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -66,15 +66,15 @@ install_prerequisites() {
                 eval "$(/usr/local/bin/brew shellenv)"
             fi
         fi
-        
+
         # macOS packages
         brew install git curl wget
-        
+
     elif [ "$OS" = "linux" ]; then
         sudo apt-get update
         sudo apt-get install -y git curl wget
     fi
-    
+
     success "Prerequisites installed"
 }
 
@@ -83,43 +83,43 @@ install_modern_tools() {
     if [ "$INSTALL_MODERN_TOOLS" = false ]; then
         return
     fi
-    
+
     info "Installing modern CLI tools..."
-    
+
     if [ "$OS" = "macos" ]; then
         # Core tools
         brew install fd bat eza zoxide fzf ripgrep
-        
+
         # Optional tools
         brew install duf dust procs bottom
-        
+
         # Additional tools
         brew install tldr httpie jq yq tree
-        
+
     elif [ "$OS" = "linux" ]; then
         # Try to install via apt first, then fallbacks
         sudo apt-get install -y fd-find bat 2>/dev/null || true
-        
+
         # Create symlinks for fd and bat if needed (Ubuntu uses different names)
         if command -v fdfind &> /dev/null && ! command -v fd &> /dev/null; then
             sudo ln -sf $(which fdfind) /usr/local/bin/fd 2>/dev/null || true
         fi
-        
+
         if command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
             sudo ln -sf $(which batcat) /usr/local/bin/bat 2>/dev/null || true
         fi
-        
+
         # Install rust-based tools via cargo if available
         if command -v cargo &> /dev/null; then
             cargo install eza zoxide du-dust duf procs bottom 2>/dev/null || true
         fi
-        
+
         # Install zoxide via install script if cargo not available
         if ! command -v zoxide &> /dev/null; then
             curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
         fi
     fi
-    
+
     success "Modern CLI tools installed"
 }
 
@@ -128,14 +128,14 @@ install_powerlevel10k() {
     if [ "$SKIP_P10K" = true ]; then
         return
     fi
-    
+
     local P10K_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
-    
+
     if [ -d "$P10K_DIR" ]; then
         warning "Powerlevel10k already installed"
         return
     fi
-    
+
     info "Installing Powerlevel10k..."
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
     success "Powerlevel10k installed"
@@ -146,14 +146,14 @@ install_lazygit() {
     if [ "$INSTALL_LAZYGIT" = false ]; then
         return
     fi
-    
+
     if command -v lazygit &> /dev/null; then
         warning "Lazygit already installed"
         return
     fi
-    
+
     info "Installing Lazygit..."
-    
+
     if [ "$OS" = "macos" ]; then
         brew install lazygit
     elif [ "$OS" = "linux" ]; then
@@ -164,7 +164,7 @@ install_lazygit() {
         sudo install lazygit /usr/local/bin
         rm lazygit lazygit.tar.gz
     fi
-    
+
     success "Lazygit installed"
 }
 
@@ -173,20 +173,20 @@ install_lazydocker() {
     if [ "$INSTALL_LAZYDOCKER" = false ]; then
         return
     fi
-    
+
     if command -v lazydocker &> /dev/null; then
         warning "Lazydocker already installed"
         return
     fi
-    
+
     info "Installing Lazydocker..."
-    
+
     if [ "$OS" = "macos" ]; then
         brew install lazydocker
     elif [ "$OS" = "linux" ]; then
         curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash
     fi
-    
+
     success "Lazydocker installed"
 }
 
@@ -196,7 +196,7 @@ install_fzf() {
         warning "fzf already installed"
         return
     fi
-    
+
     info "Installing fzf..."
     git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
     ~/.fzf/install --all
@@ -209,31 +209,31 @@ install_ohmyzsh() {
         warning "Oh My Zsh already installed"
         return
     fi
-    
+
     info "Installing Oh My Zsh..."
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-    
+
     # Install plugins
     ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-    
+
     # zsh-autosuggestions
     if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
         git clone https://github.com/zsh-users/zsh-autosuggestions.git \
             "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
     fi
-    
+
     # zsh-syntax-highlighting
     if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
         git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \
             "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
     fi
-    
+
     # zsh-history-substring-search
     if [ ! -d "$ZSH_CUSTOM/plugins/zsh-history-substring-search" ]; then
         git clone https://github.com/zsh-users/zsh-history-substring-search.git \
             "$ZSH_CUSTOM/plugins/zsh-history-substring-search"
     fi
-    
+
     success "Oh My Zsh installed"
 }
 
@@ -241,19 +241,19 @@ install_ohmyzsh() {
 change_shell() {
     local zsh_path
     zsh_path=$(command -v zsh)
-    
+
     if [ "$SHELL" = "$zsh_path" ]; then
         info "Shell is already zsh"
         return
     fi
-    
+
     if ! grep -q "^$zsh_path$" /etc/shells 2>/dev/null; then
         if [ "$OS" = "macos" ]; then
             info "Adding zsh to /etc/shells"
             echo "$zsh_path" | sudo tee -a /etc/shells
         fi
     fi
-    
+
     info "Changing default shell to zsh..."
     chsh -s "$zsh_path"
     success "Shell changed to zsh"
@@ -265,7 +265,7 @@ install_tpm() {
         warning "TPM already installed"
         return
     fi
-    
+
     info "Installing Tmux Plugin Manager (TPM)..."
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     success "TPM installed"
@@ -275,9 +275,9 @@ install_tpm() {
 install_spacevim() {
     local SPACEVIM_DIR="$DOTFILES_DIR/space-vim"
     local ORIGINAL_DIR="$(pwd)"
-    
+
     info "Setting up space-vim..."
-    
+
     # Check if space-vim submodule exists
     if [ ! -f "$SPACEVIM_DIR/init.vim" ]; then
         warning "space-vim submodule not found, initializing..."
@@ -285,19 +285,19 @@ install_spacevim() {
         git submodule update --init --recursive
         cd "$ORIGINAL_DIR"
     fi
-    
+
     # Backup existing vim config
     backup_file "$HOME/.vimrc"
     if [ -d "$HOME/.vim" ] && [ ! -L "$HOME/.vim" ]; then
         info "Backing up ~/.vim directory"
         mv "$HOME/.vim" "$BACKUP_DIR/"
     fi
-    
+
     # Create vim directories
     mkdir -p "$HOME/.vim/undo"
     mkdir -p "$HOME/.vim/swap"
     mkdir -p "$HOME/.vim/autoload"
-    
+
     # Install vim-plug
     if [ ! -f "$HOME/.vim/autoload/plug.vim" ]; then
         info "Installing vim-plug..."
@@ -305,78 +305,80 @@ install_spacevim() {
             https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
         success "vim-plug installed"
     fi
-    
+
     # Create symlinks
     lnif "$SPACEVIM_DIR/init.vim" "$HOME/.vimrc"
-    
+
     # Create .vimrc.bundle if not exists
     if [ ! -e "$HOME/.vimrc.bundle" ]; then
         lnif "$SPACEVIM_DIR/init.spacevim" "$HOME/.vimrc.bundle"
         success "Created ~/.vimrc.bundle"
     fi
-    
+
     # Install plugins (with timeout to avoid hanging)
     info "Installing vim plugins via vim-plug..."
     if ! timeout 300 vim +PlugInstall +qall 2>/dev/null; then
         warning "Vim plugin installation may have taken too long or failed"
         warning "You can manually run: vim +PlugInstall +qall"
     fi
-    
+
     success "space-vim configured"
 }
 
 # Link configuration files
 link_configs() {
     info "Linking configuration files..."
-    
+
     # Create necessary directories
     mkdir -p "$HOME/.config"
     mkdir -p "$HOME/.config/zsh"
     mkdir -p "$HOME/.vim/undo"
     mkdir -p "$HOME/.vim/swap"
     mkdir -p "$HOME/.tmux/logs"
-    
+
     # Shell configs - Modular structure
     # Main shell configs
     backup_file "$HOME/.bashrc"
     lnif "$DOTFILES_DIR/shell/bashrc" "$HOME/.bashrc"
-    
+
     backup_file "$HOME/.zshrc"
     lnif "$DOTFILES_DIR/shell/zshrc" "$HOME/.zshrc"
-    
-    # Modular zsh configs (aliases and exports)
-    backup_file "$HOME/.config/zsh/aliases.zsh"
-    lnif "$DOTFILES_DIR/shell/aliases.zsh" "$HOME/.config/zsh/aliases.zsh"
-    
-    backup_file "$HOME/.config/zsh/exports.zsh"
-    lnif "$DOTFILES_DIR/shell/exports.zsh" "$HOME/.config/zsh/exports.zsh"
-    
+
+    # Local zsh config (conda, proxy, etc.)
+    # Only link if not exists to preserve user's local customizations
+    if [ ! -e "$HOME/.zshrc.local" ]; then
+        lnif "$DOTFILES_DIR/shell/zshrc.local" "$HOME/.zshrc.local"
+        info "Created ~/.zshrc.local (conda template)"
+    else
+        info "Skipping ~/.zshrc.local (already exists)"
+    fi
+
     success "Shell configuration files linked (modular structure)"
-    
+
     # Tmux config
     backup_file "$HOME/.tmux.conf"
     lnif "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
-    
+
     # Git config
     backup_file "$HOME/.gitconfig"
     lnif "$DOTFILES_DIR/git/gitconfig" "$HOME/.gitconfig"
-    
+
     # Tig config
     backup_file "$HOME/.tigrc"
     lnif "$DOTFILES_DIR/tig/tigrc" "$HOME/.tigrc"
-    
+
     backup_file "$HOME/.tigrc.theme"
     lnif "$DOTFILES_DIR/tig/tigrc.theme" "$HOME/.tigrc.theme"
-    
+
     # Vim config (space-vim)
     # This is handled by install_spacevim() function
-    
+
     # Powerlevel10k config
     if [ -f "$DOTFILES_DIR/config/p10k.zsh" ] && [ "$SKIP_P10K" = false ]; then
         backup_file "$HOME/.p10k.zsh"
         lnif "$DOTFILES_DIR/config/p10k.zsh" "$HOME/.p10k.zsh"
     fi
-    
+
     # Lazygit config
     if [ -f "$DOTFILES_DIR/config/lazygit.yml" ]; then
         mkdir -p "$HOME/Library/Application Support/lazygit" 2>/dev/null || mkdir -p "$HOME/.config/lazygit"
@@ -386,7 +388,7 @@ link_configs() {
             lnif "$DOTFILES_DIR/config/lazygit.yml" "$HOME/.config/lazygit/config.yml"
         fi
     fi
-    
+
     # Lazydocker config
     if [ -f "$DOTFILES_DIR/config/lazydocker.yml" ]; then
         mkdir -p "$HOME/Library/Application Support/lazydocker" 2>/dev/null || mkdir -p "$HOME/.config/lazydocker"
@@ -396,42 +398,42 @@ link_configs() {
             lnif "$DOTFILES_DIR/config/lazydocker.yml" "$HOME/.config/lazydocker/config.yml"
         fi
     fi
-    
+
     success "Configuration files linked"
 }
 
 # Install platform-specific packages
 install_platform_packages() {
     info "Installing platform-specific packages..."
-    
+
     if [ "$OS" = "macos" ]; then
         # macOS specific
         brew install tmux vim git tig tree
-        
+
         # For tmux clipboard integration on macOS
         brew install reattach-to-user-namespace
-        
+
         # Core tools
         brew install the_silver_searcher ripgrep fzf
-        
+
         # Universal ctags (required by space-vim, NOT default BSD ctags)
         brew install universal-ctags
-        
+
         # Verify ctags installation
         if ! command -v ctags &> /dev/null || ! ctags --version 2>/dev/null | grep -q "Universal"; then
             warning "Universal Ctags installation may have failed"
             warning "Please check: brew install universal-ctags"
         fi
-        
+
         # Additional tools
         brew install jq yq httpie tldr
-        
+
     elif [ "$OS" = "linux" ]; then
         # Ubuntu/Debian specific
         sudo apt-get update
         sudo apt-get install -y tmux vim git tig tree jq httpie
         sudo apt-get install -y silversearcher-ag ripgrep
-        
+
         # Universal ctags (required by space-vim)
         # Try to install from source if package not available
         if ! command -v ctags &> /dev/null || ! ctags --version 2>/dev/null | grep -q "Universal"; then
@@ -447,7 +449,7 @@ install_platform_packages() {
             sudo make install
             cd "$ORIGINAL_DIR"
             rm -rf /tmp/ctags
-            
+
             # Verify installation
             if command -v /usr/local/bin/ctags &> /dev/null && /usr/local/bin/ctags --version | grep -q "Universal"; then
                 success "Universal Ctags installed successfully"
@@ -456,16 +458,16 @@ install_platform_packages() {
                 warning "Please install manually: https://github.com/universal-ctags/ctags"
             fi
         fi
-        
+
         # Build tools
         sudo apt-get install -y build-essential
-        
+
         # Install tldr
         if ! command -v tldr &> /dev/null; then
             sudo apt-get install -y tldr || npm install -g tldr 2>/dev/null || true
         fi
     fi
-    
+
     success "Platform-specific packages installed"
 }
 
@@ -483,10 +485,9 @@ post_install() {
 ║  3. To customize Powerlevel10k prompt: p10k configure         ║
 ║  4. space-vim is ready! Customize via ~/.vimrc.bundle         ║
 ║                                                                ║
-║  Modular Shell Configuration:                                  ║
-║  • ~/.zshrc              - Main configuration                  ║
-║  • ~/.config/zsh/exports.zsh - Environment variables           ║
-║  • ~/.config/zsh/aliases.zsh - Command aliases                 ║
+║  Shell Configuration:                                          ║
+║  • ~/.zshrc              - Main configuration (linked)         ║
+║  • ~/.zshrc.local        - Local customizations (conda, etc.)  ║
 ║                                                                ║
 ║  Powerlevel10k Features:                                       ║
 ║  • Instant prompt - Blazing fast startup                       ║
@@ -569,7 +570,7 @@ main() {
                 ;;
         esac
     done
-    
+
     # Run installation steps
     install_prerequisites
     if [ "$SKIP_PACKAGES" = false ]; then

@@ -18,6 +18,7 @@ echo ""
 DOTFILES=(
     "$HOME/.bashrc"
     "$HOME/.zshrc"
+    "$HOME/.zshrc.local"
     "$HOME/.tmux.conf"
     "$HOME/.gitconfig"
     "$HOME/.tigrc"
@@ -26,8 +27,6 @@ DOTFILES=(
     "$HOME/.vimrc.bundle"
     "$HOME/.p10k.zsh"
     "$HOME/.config/starship.toml"
-    "$HOME/.config/zsh/aliases.zsh"
-    "$HOME/.config/zsh/exports.zsh"
 )
 
 # Platform-specific config paths
