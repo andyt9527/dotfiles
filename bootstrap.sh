@@ -2,7 +2,7 @@
 # =============================================================================
 # Bootstrap Script
 # One-liner to download and install dotfiles
-# Usage: curl -fsSL https://raw.githubusercontent.com/USER/REPO/main/bootstrap.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/andyt9527/dotfiles/main/bootstrap.sh | bash
 # =============================================================================
 
 set -e
