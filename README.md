@@ -2,6 +2,11 @@
 
 A comprehensive dotfiles configuration for **Ubuntu** and **macOS**, featuring **Oh My Zsh** with **Powerlevel10k** theme.
 
+## Install
+```
+curl -fsSL https://raw.githubusercontent.com/andyt9527/dotfiles/main/bootstrap.sh | bash
+```
+
 ## Features
 
 - 🖥️ **Cross-Platform**: Works on both Ubuntu/Debian and macOS
