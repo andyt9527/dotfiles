@@ -41,6 +41,10 @@ ZSH_CONFIG_DIR="${0:A:h}"
 # Source exports directly from dotfiles
 [[ -f "$ZSH_CONFIG_DIR/exports.zsh" ]] && source "$ZSH_CONFIG_DIR/exports.zsh"
 
+# Fallback: Ensure ZSH is always defined (for Ubuntu compatibility)
+# This prevents "ZSH variable not defined" errors on fresh shell startup
+export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
+
 # =============================================================================
 # Oh My Zsh Configuration
 # =============================================================================
@@ -100,6 +104,12 @@ if [[ "$OS" == "macos" ]]; then
 fi
 
 # Source Oh My Zsh
+# Check if Oh My Zsh is installed before sourcing
+if [[ ! -d "$ZSH" ]]; then
+    echo "Error: Oh My Zsh not found at $ZSH"
+    echo "Please run the install.sh script or install Oh My Zsh manually."
+    return 1
+fi
 source $ZSH/oh-my-zsh.sh
 
 # =============================================================================
