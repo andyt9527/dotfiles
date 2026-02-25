@@ -82,7 +82,6 @@ HIST_STAMPS="yyyy-mm-dd"
 plugins=(
     git
     zsh-autosuggestions
-    zsh-syntax-highlighting
     zsh-history-substring-search
     history
     extract
@@ -96,6 +95,8 @@ plugins=(
     web-search
     urltools
     bgnotify
+    # zsh-syntax-highlighting must be last
+    zsh-syntax-highlighting
 )
 
 # Platform-specific plugins

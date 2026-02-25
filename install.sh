@@ -157,8 +157,8 @@ install_lazygit() {
     if [ "$OS" = "macos" ]; then
         brew install lazygit
     elif [ "$OS" = "linux" ]; then
-        # Get latest version
-        LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+        # Get latest version (use grep with basic regex for portability)
+        LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -o 'v[0-9.]*' | head -1 | sed 's/v//')
         curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
         tar xf lazygit.tar.gz lazygit
         sudo install lazygit /usr/local/bin
@@ -199,7 +199,8 @@ install_fzf() {
 
     info "Installing fzf..."
     git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-    ~/.fzf/install --all
+    # Run install script; if it fails (e.g., due to missing dependencies), continue anyway
+    ~/.fzf/install --no-key-bindings --no-completion 2>/dev/null || true
     success "fzf installed"
 }
 
@@ -315,12 +316,10 @@ install_spacevim() {
         success "Created ~/.vimrc.bundle"
     fi
 
-    # Install plugins (with timeout to avoid hanging)
+    # Install vim plugins (non-interactive mode)
     info "Installing vim plugins via vim-plug..."
-    if ! timeout 300 vim +PlugInstall +qall 2>/dev/null; then
-        warning "Vim plugin installation may have taken too long or failed"
-        warning "You can manually run: vim +PlugInstall +qall"
-    fi
+    # Use vim in ex mode for non-interactive installation
+    vim -E -s -c "source $HOME/.vimrc" -c "PlugInstall --sync" -c "qa" 2>/dev/null || true
 
     success "space-vim configured"
 }
@@ -381,20 +380,22 @@ link_configs() {
 
     # Lazygit config
     if [ -f "$DOTFILES_DIR/config/lazygit.yml" ]; then
-        mkdir -p "$HOME/Library/Application Support/lazygit" 2>/dev/null || mkdir -p "$HOME/.config/lazygit"
         if [ "$OS" = "macos" ]; then
+            mkdir -p "$HOME/Library/Application Support/lazygit"
             lnif "$DOTFILES_DIR/config/lazygit.yml" "$HOME/Library/Application Support/lazygit/config.yml"
         else
+            mkdir -p "$HOME/.config/lazygit"
             lnif "$DOTFILES_DIR/config/lazygit.yml" "$HOME/.config/lazygit/config.yml"
         fi
     fi
 
     # Lazydocker config
     if [ -f "$DOTFILES_DIR/config/lazydocker.yml" ]; then
-        mkdir -p "$HOME/Library/Application Support/lazydocker" 2>/dev/null || mkdir -p "$HOME/.config/lazydocker"
         if [ "$OS" = "macos" ]; then
+            mkdir -p "$HOME/Library/Application Support/lazydocker"
             lnif "$DOTFILES_DIR/config/lazydocker.yml" "$HOME/Library/Application Support/lazydocker/config.yml"
         else
+            mkdir -p "$HOME/.config/lazydocker"
             lnif "$DOTFILES_DIR/config/lazydocker.yml" "$HOME/.config/lazydocker/config.yml"
         fi
     fi

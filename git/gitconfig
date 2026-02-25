@@ -3,6 +3,8 @@
 # Based on misc_config project
 # =============================================================================
 
+# NOTE: Update these with your information, or create ~/.gitconfig.local
+#       to avoid overwriting your personal settings
 [user]
     name = Andy Tian
     email = andy.tian@cixtech.com

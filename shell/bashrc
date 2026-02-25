@@ -87,3 +87,5 @@ alias reload='source ~/.bashrc'
 # Local Config
 # =============================================================================
 [[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

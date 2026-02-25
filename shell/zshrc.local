@@ -1,30 +1,81 @@
 #!/usr/bin/env zsh
 
+# Platform-specific configurations
+# Note: conda/mamba initialization is done below with auto-detection
+
+# =============================================================================
+# Linux (Ubuntu) specific configurations
+# =============================================================================
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    export ANDROID_HOME=/home/andy/andywork/sdk-android/Sdk
+    export PATH="$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:/home/andy/andywork/sdk-android/Sdk/build-tools/35.0.0"
+
+    set -o nonomatch
+
+    source /etc/profile.d/modules.sh
+    #export AARCH64_GCC_CROSS_COMPILE=/opt/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin/aarch64-none-elf-
+
+    export LD_LIBRARY_PATH=/home/andy/NPU/simulator/lib/:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=/home/andy/NPU/opencl-tool-chain/opencl-compiler/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=/home/andy/NPU/opencl-tool-chain/opencl-debugger/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=/home/andy/NPU/c-tool-chain/c-compiler/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=/home/andy/NPU/c-tool-chain/c-debugger/lib:$LD_LIBRARY_PATH
+    #export LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64:$LD_LIBRARY_PATH
+
+    export PATH="$PATH:/home/andy/NPU/opencl-tool-chain/opencl-compiler/bin:/home/andy/NPU/opencl-tool-chain/opencl-debugger/bin"
+    export PATH="$PATH:/home/andy/NPU/c-tool-chain/c-compiler/bin:/home/andy/NPU/c-tool-chain/c-debugger/bin"
+    export PATH="$PATH:$HOME/.local/bin"
+    #export PATH=/usr/local/cuda-12.1/bin:$PATH
+fi
+
+# =============================================================================
+# macOS specific configurations
+# =============================================================================
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # Add macOS-specific configurations here
+    # Example:
+    # export HOMEBREW_PREFIX="/opt/homebrew"
+    # export PATH="$HOMEBREW_PREFIX/bin:$PATH"
+    :
+fi
+
+# =============================================================================
+# Common configurations (cross-platform)
+# =============================================================================
+
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/Users/andy/miniforge3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/Users/andy/miniforge3/etc/profile.d/conda.sh" ]; then
-        . "/Users/andy/miniforge3/etc/profile.d/conda.sh"
+# Detect miniforge3 location (compatible with macOS and Linux)
+_detect_conda() {
+    local conda_paths=(
+        "$HOME/miniforge3"
+        "$HOME/andywork/miniforge3"
+        "/opt/miniforge3"
+    )
+    for path in "${conda_paths[@]}"; do
+        if [ -f "$path/bin/conda" ]; then
+            echo "$path"
+            return 0
+        fi
+    done
+    return 1
+}
+
+CONDA_PREFIX=$(_detect_conda)
+if [ -n "$CONDA_PREFIX" ]; then
+    __conda_setup="$('$CONDA_PREFIX/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+    if [ $? -eq 0 ]; then
+        eval "$__conda_setup"
     else
-        export PATH="/Users/andy/miniforge3/bin:$PATH"
+        if [ -f "$CONDA_PREFIX/etc/profile.d/conda.sh" ]; then
+            . "$CONDA_PREFIX/etc/profile.d/conda.sh"
+        else
+            export PATH="$CONDA_PREFIX/bin:$PATH"
+        fi
     fi
+    unset __conda_setup
 fi
-unset __conda_setup
+unset CONDA_PREFIX
 # <<< conda initialize <<<
 
-
-# >>> mamba initialize >>>
-# !! Contents within this block are managed by 'mamba shell init' !!
-export MAMBA_EXE='/Users/andy/miniforge3/bin/mamba';
-export MAMBA_ROOT_PREFIX='/Users/andy/miniforge3';
-__mamba_setup="$("$MAMBA_EXE" shell hook --shell zsh --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__mamba_setup"
-else
-    alias mamba="$MAMBA_EXE"  # Fallback on help from mamba activate
-fi
-unset __mamba_setup
-# <<< mamba initialize <<<
+export PATH="$HOME/.npm-global/bin:$PATH"
