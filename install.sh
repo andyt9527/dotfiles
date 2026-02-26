@@ -16,10 +16,12 @@ source "$SCRIPT_DIR/scripts/utils.sh"
 DOTFILES_DIR="$SCRIPT_DIR"
 BACKUP_DIR="$HOME/.dotfiles_backup/$(date +%Y%m%d_%H%M%S)"
 
-# Installation flags
-INSTALL_MODERN_TOOLS=false
-INSTALL_LAZYGIT=false
-INSTALL_LAZYDOCKER=false
+# Installation flags (default: install all optional tools)
+INSTALL_MODERN_TOOLS=true
+INSTALL_LAZYGIT=true
+INSTALL_LAZYDOCKER=true
+INSTALL_CLAUDE_CODE=true
+INSTALL_CODEX=true
 SKIP_PACKAGES=false
 SKIP_P10K=false
 
@@ -68,11 +70,11 @@ install_prerequisites() {
         fi
 
         # macOS packages
-        brew install git curl wget
+        brew install git curl wget node
 
     elif [ "$OS" = "linux" ]; then
         sudo apt-get update
-        sudo apt-get install -y git curl wget
+        sudo apt-get install -y git curl wget nodejs npm
     fi
 
     success "Prerequisites installed"
@@ -188,6 +190,62 @@ install_lazydocker() {
     fi
 
     success "Lazydocker installed"
+}
+
+# Install Claude Code
+install_claude_code() {
+    if [ "$INSTALL_CLAUDE_CODE" = false ]; then
+        return
+    fi
+
+    if command -v claude &> /dev/null; then
+        warning "Claude Code already installed"
+        return
+    fi
+
+    info "Installing Claude Code..."
+
+    if ! command -v npm &> /dev/null; then
+        error "npm is required to install Claude Code"
+        return
+    fi
+
+    npm install -g @anthropic-ai/claude-code
+
+    # Verify installation
+    if command -v claude &> /dev/null; then
+        success "Claude Code installed"
+    else
+        warning "Claude Code installation may have failed"
+    fi
+}
+
+# Install Codex CLI
+install_codex() {
+    if [ "$INSTALL_CODEX" = false ]; then
+        return
+    fi
+
+    if command -v codex &> /dev/null; then
+        warning "Codex already installed"
+        return
+    fi
+
+    info "Installing Codex CLI..."
+
+    if ! command -v npm &> /dev/null; then
+        error "npm is required to install Codex"
+        return
+    fi
+
+    npm install -g @openai/codex
+
+    # Verify installation
+    if command -v codex &> /dev/null; then
+        success "Codex installed"
+    else
+        warning "Codex installation may have failed"
+    fi
 }
 
 # Install fzf
@@ -514,6 +572,7 @@ post_install() {
 ║  • eza: modern ls     • zoxide: smart cd                      ║
 ║  • fzf: fuzzy finder  • ripgrep: fast grep                    ║
 ║  • lazygit: TUI git   • lazydocker: TUI docker                ║
+║  • claude: Claude Code CLI • codex: Codex CLI                 ║
 ║                                                                ║
 ║  Your original configs are backed up to:                       ║
 EOF
@@ -553,10 +612,20 @@ main() {
                 INSTALL_LAZYDOCKER=true
                 shift
                 ;;
+            --with-claude-code)
+                INSTALL_CLAUDE_CODE=true
+                shift
+                ;;
+            --with-codex)
+                INSTALL_CODEX=true
+                shift
+                ;;
             --with-all)
                 INSTALL_MODERN_TOOLS=true
                 INSTALL_LAZYGIT=true
                 INSTALL_LAZYDOCKER=true
+                INSTALL_CLAUDE_CODE=true
+                INSTALL_CODEX=true
                 shift
                 ;;
             --help|-h)
@@ -569,13 +638,13 @@ main() {
                 echo "  --with-modern-tools     Install modern CLI tools (fd, bat, eza, etc.)"
                 echo "  --with-lazygit          Install Lazygit TUI"
                 echo "  --with-lazydocker       Install Lazydocker TUI"
-                echo "  --with-all              Install all optional tools"
+                echo "  --with-claude-code      Install Claude Code CLI"
+                echo "  --with-codex            Install Codex CLI"
                 echo "  --help, -h              Show this help message"
                 echo ""
                 echo "Examples:"
-                echo "  $0                      Basic installation with Powerlevel10k"
-                echo "  $0 --with-all           Full installation with all tools"
-                echo "  $0 --with-lazygit --with-lazydocker"
+                echo "  $0                      Full installation (default)"
+                echo "  $0 --skip-packages      Skip optional tools"
                 exit 0
                 ;;
             *)
@@ -592,6 +661,8 @@ main() {
         install_modern_tools
         install_lazygit
         install_lazydocker
+        install_claude_code
+        install_codex
     fi
     install_fzf
     install_ohmyzsh
