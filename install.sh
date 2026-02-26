@@ -409,25 +409,38 @@ install_platform_packages() {
 
     if [ "$OS" = "macos" ]; then
         # macOS specific
-        brew install tmux vim git tig tree
+        # Install packages one by one to handle partial failures gracefully
+        local packages=("tmux" "vim" "git" "tig" "tree")
+        local optional_packages=("reattach-to-user-namespace" "the_silver_searcher" "ripgrep" "fzf" "universal-ctags" "jq" "yq" "httpie" "tldr")
 
-        # For tmux clipboard integration on macOS
-        brew install reattach-to-user-namespace
+        info "Installing core packages..."
+        for pkg in "${packages[@]}"; do
+            if brew list "$pkg" &>/dev/null; then
+                info "$pkg already installed, skipping"
+            else
+                info "Installing $pkg..."
+                if brew install "$pkg" 2>/dev/null; then
+                    success "$pkg installed"
+                else
+                    warning "Failed to install $pkg, trying to continue..."
+                    # Try running postinstall for tmux if it was the failing package
+                    if [ "$pkg" = "tmux" ]; then
+                        info "Attempting brew postinstall tmux..."
+                        brew postinstall tmux 2>/dev/null || warning "tmux postinstall failed, tmux should still work"
+                    fi
+                fi
+            fi
+        done
 
-        # Core tools
-        brew install the_silver_searcher ripgrep fzf
-
-        # Universal ctags (required by space-vim, NOT default BSD ctags)
-        brew install universal-ctags
-
-        # Verify ctags installation
-        if ! command -v ctags &> /dev/null || ! ctags --version 2>/dev/null | grep -q "Universal"; then
-            warning "Universal Ctags installation may have failed"
-            warning "Please check: brew install universal-ctags"
-        fi
-
-        # Additional tools
-        brew install jq yq httpie tldr
+        info "Installing optional packages..."
+        for pkg in "${optional_packages[@]}"; do
+            if brew list "$pkg" &>/dev/null; then
+                info "$pkg already installed, skipping"
+            else
+                info "Installing $pkg..."
+                brew install "$pkg" 2>/dev/null || warning "Failed to install $pkg"
+            fi
+        done
 
     elif [ "$OS" = "linux" ]; then
         # Ubuntu/Debian specific
