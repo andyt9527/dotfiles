@@ -22,6 +22,7 @@ INSTALL_LAZYGIT=true
 INSTALL_LAZYDOCKER=true
 INSTALL_CLAUDE_CODE=true
 INSTALL_CODEX=true
+INSTALL_CC_SWITCH=true
 SKIP_PACKAGES=false
 SKIP_P10K=false
 
@@ -218,6 +219,88 @@ install_claude_code() {
     else
         warning "Claude Code installation may have failed"
     fi
+}
+
+# Install cc-switch
+install_cc_switch() {
+    if [ "$INSTALL_CC_SWITCH" = false ]; then
+        return
+    fi
+
+    if command -v cc-switch &> /dev/null; then
+        warning "cc-switch already installed"
+        return
+    fi
+
+    info "Installing cc-switch..."
+
+    if [ "$OS" = "macos" ]; then
+        brew tap farion1231/ccswitch
+        brew install --cask cc-switch
+    elif [ "$OS" = "linux" ]; then
+        install_cc_switch_linux
+    else
+        warning "cc-switch is not supported on this OS"
+        return
+    fi
+
+    # Verify installation
+    if command -v cc-switch &> /dev/null; then
+        success "cc-switch installed"
+    else
+        warning "cc-switch installation may have failed"
+    fi
+}
+
+# Install cc-switch on Linux (download latest .deb from GitHub)
+install_cc_switch_linux() {
+    info "Downloading latest cc-switch release..."
+
+    local tmp
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+
+    cd "$tmp" || exit 1
+
+    # get latest tag
+    TAG=$(curl -fsSL https://api.github.com/repos/farion1231/cc-switch/releases/latest | jq -r .tag_name)
+
+    if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
+        error "Failed to get latest version"
+        return 1
+    fi
+
+    info "Latest version: $TAG"
+
+    # detect arch
+    case "$(uname -m)" in
+        x86_64|amd64)
+            ARCH="x86_64"
+            ;;
+        aarch64|arm64)
+            ARCH="arm64"
+            ;;
+        *)
+            error "Unsupported architecture: $(uname -m)"
+            return 1
+            ;;
+    esac
+
+    FILE="CC-Switch-${TAG}-Linux-${ARCH}.deb"
+    URL="https://github.com/farion1231/cc-switch/releases/download/${TAG}/${FILE}"
+
+    info "Downloading $FILE"
+
+    curl -fL -o "$FILE" "$URL"
+
+    if ! command -v apt-get >/dev/null; then
+        error "apt-get required"
+        return 1
+    fi
+
+    sudo apt-get install -y "./$FILE"
+
+    success "cc-switch installed successfully"
 }
 
 # Install Codex CLI
@@ -620,12 +703,17 @@ main() {
                 INSTALL_CODEX=true
                 shift
                 ;;
+            --with-cc-switch)
+                INSTALL_CC_SWITCH=true
+                shift
+                ;;
             --with-all)
                 INSTALL_MODERN_TOOLS=true
                 INSTALL_LAZYGIT=true
                 INSTALL_LAZYDOCKER=true
                 INSTALL_CLAUDE_CODE=true
                 INSTALL_CODEX=true
+                INSTALL_CC_SWITCH=true
                 shift
                 ;;
             --help|-h)
@@ -640,6 +728,7 @@ main() {
                 echo "  --with-lazydocker       Install Lazydocker TUI"
                 echo "  --with-claude-code      Install Claude Code CLI"
                 echo "  --with-codex            Install Codex CLI"
+                echo "  --with-cc-switch        Install cc-switch"
                 echo "  --help, -h              Show this help message"
                 echo ""
                 echo "Examples:"
@@ -663,6 +752,7 @@ main() {
         install_lazydocker
         install_claude_code
         install_codex
+        install_cc_switch
     fi
     install_fzf
     install_ohmyzsh
