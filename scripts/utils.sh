@@ -82,3 +82,59 @@ install_package() {
 get_script_dir() {
     cd "$(dirname "$0")" && pwd
 }
+
+# =============================================================================
+# Package Check Functions
+# =============================================================================
+
+# Check if a Homebrew package is installed
+brew_package_installed() {
+    local pkg="$1"
+    if ! command_exists brew; then
+        return 1
+    fi
+    brew list "$pkg" &>/dev/null
+}
+
+# Check if an apt package is installed
+apt_package_installed() {
+    local pkg="$1"
+    if ! command_exists dpkg; then
+        return 1
+    fi
+    dpkg -l "$pkg" 2>/dev/null | grep -q "^ii"
+}
+
+# Check if a package is installed (cross-platform)
+package_installed() {
+    local pkg="$1"
+    local cmd_name="${2:-$pkg}"
+    
+    # First check if command exists
+    if command_exists "$cmd_name"; then
+        return 0
+    fi
+    
+    # Then check package manager
+    if [ "$OS" = "macos" ]; then
+        brew_package_installed "$pkg"
+    elif [ "$OS" = "linux" ]; then
+        apt_package_installed "$pkg"
+    else
+        return 1
+    fi
+}
+
+# Install a package only if not already installed
+install_package_if_needed() {
+    local pkg="$1"
+    local cmd_name="${2:-$pkg}"
+    
+    if package_installed "$pkg" "$cmd_name"; then
+        info "$pkg is already installed, skipping"
+        return 0
+    fi
+    
+    info "Installing $pkg..."
+    install_package "$pkg"
+}

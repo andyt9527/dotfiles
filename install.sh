@@ -68,14 +68,46 @@ install_prerequisites() {
             elif [ -d "/usr/local/bin" ]; then
                 eval "$(/usr/local/bin/brew shellenv)"
             fi
+        else
+            info "Homebrew is already installed"
         fi
 
-        # macOS packages
-        brew install git curl wget node
+        # macOS packages - check before install
+        local prereq_packages=("git" "curl" "wget" "node")
+        for pkg in "${prereq_packages[@]}"; do
+            if brew_package_installed "$pkg"; then
+                info "$pkg is already installed, skipping"
+            else
+                info "Installing $pkg..."
+                brew install "$pkg" && success "$pkg installed" || warning "Failed to install $pkg"
+            fi
+        done
 
     elif [ "$OS" = "linux" ]; then
-        sudo apt-get update
-        sudo apt-get install -y git curl wget nodejs npm
+        # Check and install packages one by one
+        local prereq_packages=("git" "curl" "wget" "nodejs" "npm")
+        local needs_update=false
+        
+        for pkg in "${prereq_packages[@]}"; do
+            if apt_package_installed "$pkg"; then
+                info "$pkg is already installed, skipping"
+            else
+                needs_update=true
+                break
+            fi
+        done
+        
+        if [ "$needs_update" = true ]; then
+            sudo apt-get update
+            for pkg in "${prereq_packages[@]}"; do
+                if apt_package_installed "$pkg"; then
+                    info "$pkg is already installed, skipping"
+                else
+                    info "Installing $pkg..."
+                    sudo apt-get install -y "$pkg" && success "$pkg installed" || warning "Failed to install $pkg"
+                fi
+            done
+        fi
     fi
 
     success "Prerequisites installed"
@@ -90,18 +122,55 @@ install_modern_tools() {
     info "Installing modern CLI tools..."
 
     if [ "$OS" = "macos" ]; then
-        # Core tools
-        brew install fd bat eza zoxide fzf ripgrep
+        # Core tools with individual checks
+        local core_tools=("fd" "bat" "eza" "zoxide" "fzf" "ripgrep")
+        for pkg in "${core_tools[@]}"; do
+            if brew_package_installed "$pkg"; then
+                info "$pkg is already installed, skipping"
+            else
+                info "Installing $pkg..."
+                brew install "$pkg" && success "$pkg installed" || warning "Failed to install $pkg"
+            fi
+        done
 
         # Optional tools
-        brew install duf dust procs bottom
+        local optional_tools=("duf" "dust" "procs" "bottom")
+        for pkg in "${optional_tools[@]}"; do
+            if brew_package_installed "$pkg"; then
+                info "$pkg is already installed, skipping"
+            else
+                info "Installing $pkg..."
+                brew install "$pkg" && success "$pkg installed" || warning "Failed to install $pkg"
+            fi
+        done
 
         # Additional tools
-        brew install tldr httpie jq yq tree
+        local additional_tools=("tldr" "httpie" "jq" "yq" "tree")
+        for pkg in "${additional_tools[@]}"; do
+            if brew_package_installed "$pkg"; then
+                info "$pkg is already installed, skipping"
+            else
+                info "Installing $pkg..."
+                brew install "$pkg" && success "$pkg installed" || warning "Failed to install $pkg"
+            fi
+        done
 
     elif [ "$OS" = "linux" ]; then
-        # Try to install via apt first, then fallbacks
-        sudo apt-get install -y fd-find bat 2>/dev/null || true
+        # Check and install fd-find
+        if command_exists fdfind || command_exists fd; then
+            info "fd is already installed, skipping"
+        else
+            info "Installing fd-find..."
+            sudo apt-get install -y fd-find && success "fd-find installed" || warning "Failed to install fd-find"
+        fi
+
+        # Check and install bat
+        if command_exists batcat || command_exists bat; then
+            info "bat is already installed, skipping"
+        else
+            info "Installing bat..."
+            sudo apt-get install -y bat && success "bat installed" || warning "Failed to install bat"
+        fi
 
         # Create symlinks for fd and bat if needed (Ubuntu uses different names)
         if command -v fdfind &> /dev/null && ! command -v fd &> /dev/null; then
@@ -114,12 +183,26 @@ install_modern_tools() {
 
         # Install rust-based tools via cargo if available
         if command -v cargo &> /dev/null; then
-            cargo install eza zoxide du-dust duf procs bottom 2>/dev/null || true
+            local rust_tools=("eza" "zoxide" "du-dust" "duf" "procs" "bottom")
+            for tool in "${rust_tools[@]}"; do
+                local cmd_name="$tool"
+                [ "$tool" = "du-dust" ] && cmd_name="dust"
+                if command_exists "$cmd_name"; then
+                    info "$tool is already installed, skipping"
+                else
+                    info "Installing $tool via cargo..."
+                    cargo install "$tool" 2>/dev/null && success "$tool installed" || warning "Failed to install $tool"
+                fi
+            done
         fi
 
-        # Install zoxide via install script if cargo not available
-        if ! command -v zoxide &> /dev/null; then
+        # Install zoxide via install script if not already installed
+        if command_exists zoxide; then
+            info "zoxide is already installed, skipping"
+        else
+            info "Installing zoxide..."
             curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+            success "zoxide installed"
         fi
     fi
 
@@ -556,8 +639,8 @@ install_platform_packages() {
 
         info "Installing core packages..."
         for pkg in "${packages[@]}"; do
-            if brew list "$pkg" &>/dev/null; then
-                info "$pkg already installed, skipping"
+            if brew_package_installed "$pkg"; then
+                info "$pkg is already installed, skipping"
             else
                 info "Installing $pkg..."
                 if brew install "$pkg" 2>/dev/null; then
@@ -575,25 +658,59 @@ install_platform_packages() {
 
         info "Installing optional packages..."
         for pkg in "${optional_packages[@]}"; do
-            if brew list "$pkg" &>/dev/null; then
-                info "$pkg already installed, skipping"
+            if brew_package_installed "$pkg"; then
+                info "$pkg is already installed, skipping"
             else
                 info "Installing $pkg..."
-                brew install "$pkg" 2>/dev/null || warning "Failed to install $pkg"
+                brew install "$pkg" 2>/dev/null && success "$pkg installed" || warning "Failed to install $pkg"
             fi
         done
 
     elif [ "$OS" = "linux" ]; then
-        # Ubuntu/Debian specific
-        sudo apt-get update
-        sudo apt-get install -y tmux vim git tig tree jq httpie
-        sudo apt-get install -y silversearcher-ag ripgrep
+        # Ubuntu/Debian specific - check each package before installing
+        local packages=("tmux" "vim" "git" "tig" "tree" "jq" "httpie" "silversearcher-ag" "ripgrep")
+        local needs_update=false
+        
+        # First check if any package needs installation
+        for pkg in "${packages[@]}"; do
+            local cmd_name="$pkg"
+            [ "$pkg" = "silversearcher-ag" ] && cmd_name="ag"
+            if ! command_exists "$cmd_name" && ! apt_package_installed "$pkg"; then
+                needs_update=true
+                break
+            fi
+        done
+        
+        if [ "$needs_update" = true ]; then
+            sudo apt-get update
+            for pkg in "${packages[@]}"; do
+                local cmd_name="$pkg"
+                [ "$pkg" = "silversearcher-ag" ] && cmd_name="ag"
+                if command_exists "$cmd_name" || apt_package_installed "$pkg"; then
+                    info "$pkg is already installed, skipping"
+                else
+                    info "Installing $pkg..."
+                    sudo apt-get install -y "$pkg" && success "$pkg installed" || warning "Failed to install $pkg"
+                fi
+            done
+        else
+            info "All platform packages are already installed"
+        fi
 
         # Universal ctags (required by space-vim)
         # Try to install from source if package not available
-        if ! command -v ctags &> /dev/null || ! ctags --version 2>/dev/null | grep -q "Universal"; then
+        if command_exists ctags && ctags --version 2>/dev/null | grep -q "Universal"; then
+            info "Universal Ctags is already installed, skipping"
+        else
             info "Installing Universal Ctags from source..."
-            sudo apt-get install -y build-essential autoconf automake pkg-config
+            # Check build dependencies first
+            local build_deps=("build-essential" "autoconf" "automake" "pkg-config")
+            for dep in "${build_deps[@]}"; do
+                if ! apt_package_installed "$dep"; then
+                    sudo apt-get install -y "$dep"
+                fi
+            done
+            
             local ORIGINAL_DIR="$(pwd)"
             rm -rf /tmp/ctags
             git clone https://github.com/universal-ctags/ctags.git /tmp/ctags
@@ -615,10 +732,17 @@ install_platform_packages() {
         fi
 
         # Build tools
-        sudo apt-get install -y build-essential
+        if apt_package_installed "build-essential"; then
+            info "build-essential is already installed, skipping"
+        else
+            sudo apt-get install -y build-essential && success "build-essential installed" || warning "Failed to install build-essential"
+        fi
 
         # Install tldr
-        if ! command -v tldr &> /dev/null; then
+        if command_exists tldr; then
+            info "tldr is already installed, skipping"
+        else
+            info "Installing tldr..."
             sudo apt-get install -y tldr || npm install -g tldr 2>/dev/null || true
         fi
     fi
