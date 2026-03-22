@@ -16,19 +16,25 @@ echo "╚═══════════════════════�
 echo ""
 
 # Update dotfiles repository
-info "Updating dotfiles repository..."
-cd "$DOTFILES_DIR"
-git pull origin $(git branch --show-current 2>/dev/null || echo main)
+if check_command git; then
+    info "Updating dotfiles repository..."
+    cd "$DOTFILES_DIR"
+    git pull origin $(git branch --show-current 2>/dev/null || echo main)
 
-# Update submodules (space-vim)
-info "Updating submodules..."
-git submodule update --init --recursive
-git submodule update --remote
+    # Update submodules (space-vim)
+    info "Updating submodules..."
+    git submodule update --init --recursive
+    git submodule update --remote
+else
+    warning "git not found, skipping dotfiles update"
+fi
 
 # Update Oh My Zsh
 if [ -d "$HOME/.oh-my-zsh" ]; then
-    info "Updating Oh My Zsh..."
-    omz update || true
+    if check_command omz; then
+        info "Updating Oh My Zsh..."
+        omz update || true
+    fi
 
     # Update custom plugins
     ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
@@ -43,21 +49,27 @@ fi
 
 # Update fzf
 if [ -d "$HOME/.fzf" ]; then
-    info "Updating fzf..."
-    cd "$HOME/.fzf" && git pull && ./install --bin
+    if check_command git; then
+        info "Updating fzf..."
+        cd "$HOME/.fzf" && git pull && ./install --bin
+    fi
 fi
 
 # Update Tmux plugins
 if [ -d "$HOME/.tmux/plugins/tpm" ]; then
-    info "Updating Tmux Plugin Manager..."
-    cd "$HOME/.tmux/plugins/tpm" && git pull
+    if check_command git; then
+        info "Updating Tmux Plugin Manager..."
+        cd "$HOME/.tmux/plugins/tpm" && git pull
+    fi
 
-    info "Updating Tmux plugins..."
-    "$HOME/.tmux/plugins/tpm/bin/update_plugins" all
+    if [ -f "$HOME/.tmux/plugins/tpm/bin/update_plugins" ]; then
+        info "Updating Tmux plugins..."
+        "$HOME/.tmux/plugins/tpm/bin/update_plugins" all
+    fi
 fi
 
 # Update Vim plugins
-if command -v vim &> /dev/null && [ -f "$HOME/.vimrc" ]; then
+if check_command vim && [ -f "$HOME/.vimrc" ]; then
     info "Updating Vim plugins..."
     vim +PlugUpdate +qall
 fi

@@ -143,4 +143,7 @@
     # Cache credentials (timeout in seconds)
     helper = cache --timeout=3600
 
+# Local overrides - environment-specific settings
+[include]
+    path = /Users/andy/dotfiles/git/gitconfig.local
 

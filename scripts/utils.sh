@@ -1,20 +1,21 @@
-#!/usr/bin/env bash
+# =============================================================================
+# Shell-agnostic utilities (sourced from shell/utils.sh)
+# =============================================================================
+
+# Get the dotfiles directory (works regardless of how this script is called)
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
+
+# Source shell-agnostic utilities
+# shellcheck source=../shell/utils.sh
+if [[ -f "$DOTFILES_DIR/shell/utils.sh" ]]; then
+    source "$DOTFILES_DIR/shell/utils.sh"
+fi
+
+OS=${OS:-$(detect_os)}
+
 # =============================================================================
 # Cross-platform utility functions for Ubuntu and macOS
 # =============================================================================
-
-# Detect OS type
-detect_os() {
-    case "$(uname -s)" in
-        Linux*)     echo "linux";;
-        Darwin*)    echo "macos";;
-        CYGWIN*)    echo "cygwin";;
-        MINGW*)     echo "mingw";;
-        *)          echo "unknown";;
-    esac
-}
-
-OS=$(detect_os)
 
 # Colors for output
 RED='\033[0;31m'

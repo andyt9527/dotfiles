@@ -19,16 +19,14 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 # =============================================================================
-# OS Detection
+# Shell-agnostic utilities (sourced from shell/utils.sh)
 # =============================================================================
-detect_os() {
-    case "$(uname -s)" in
-        Linux*)     echo "linux";;
-        Darwin*)    echo "macos";;
-        *)          echo "unknown";;
-    esac
-}
-OS=$(detect_os)
+ZSH_CONFIG_DIR="${0:A:h}"
+if [[ -f "$ZSH_CONFIG_DIR/utils.sh" ]]; then
+    source "$ZSH_CONFIG_DIR/utils.sh"
+fi
+
+OS=${OS:-$(detect_os)}
 
 # Architecture detection (for Apple Silicon)
 ARCH=$(uname -m)
@@ -36,8 +34,6 @@ ARCH=$(uname -m)
 # =============================================================================
 # Source Environment Variables (Exports)
 # =============================================================================
-# Get the directory where this script is located (resolves symlinks)
-ZSH_CONFIG_DIR="${0:A:h}"
 # Source exports directly from dotfiles
 [[ -f "$ZSH_CONFIG_DIR/exports.zsh" ]] && source "$ZSH_CONFIG_DIR/exports.zsh"
 
@@ -156,7 +152,7 @@ if [[ "$OS" == "macos" ]]; then
         path_add "$JAVA_HOME/bin"
     fi
     
-    # Node Version Manager (nvm)
+    # Node Version Manager (nvm) - cross-platform
     [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
 fi
 
@@ -266,4 +262,6 @@ bindkey "\C-x\C-e" edit-command-line
 # =============================================================================
 # Local Customizations
 # =============================================================================
+
+# User's personal customizations
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local

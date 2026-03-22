@@ -78,31 +78,8 @@ fi
 export ZSH="$HOME/.oh-my-zsh"
 
 # =============================================================================
-# Node Version Manager (nvm) - macOS
+# Node Version Manager (nvm) - cross-platform
 # =============================================================================
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    export NVM_DIR="$HOME/.nvm"
-fi
+export NVM_DIR="$HOME/.nvm"
 
 # =============================================================================
-# Android SDK
-# =============================================================================
-# macOS
-#if [[ "$OSTYPE" == "darwin"* ]] && [[ -d "$HOME/Library/Android/sdk" ]]; then
-#    export ANDROID_HOME="$HOME/Library/Android/sdk"
-#fi
-
-# Linux
-#if [[ "$OSTYPE" == "linux-gnu"* ]] && [[ -d "$HOME/Android/Sdk" ]]; then
-#    export ANDROID_HOME="$HOME/Android/Sdk"
-#fi
-
-# =============================================================================
-# Java Home (macOS - auto-detect latest)
-# =============================================================================
-#if [[ "$OSTYPE" == "darwin"* ]] && [[ -d "/Library/Java/JavaVirtualMachines" ]]; then
-#    latest_java=$(ls /Library/Java/JavaVirtualMachines 2>/dev/null | sort -V | tail -1)
-#    if [[ -n "$latest_java" ]]; then
-#        export JAVA_HOME="/Library/Java/JavaVirtualMachines/${latest_java}/Contents/Home"
-#    fi
-#fi

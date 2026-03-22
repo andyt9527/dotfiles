@@ -4,12 +4,8 @@
 *.swo
 *~
 
-# Local configs
-.bashrc.local
-.zshrc.local
-.vimrc.local
-.gitconfig-work
-.gitconfig-personal
+# Local files in subdirectories (e.g., git/gitconfig.local)
+*.local
 
 # Powerlevel10k generated files
 # Note: We track the template p10k.zsh, but user customizations should be local
