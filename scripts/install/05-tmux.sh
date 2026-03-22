@@ -14,7 +14,7 @@ install_tmux() {
 
 install_tpm() {
     if [ -d "$HOME/.tmux/plugins/tpm" ]; then
-        warning "TPM already installed"
+        info "TPM already installed"
         return
     fi
 

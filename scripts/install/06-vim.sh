@@ -16,7 +16,7 @@ install_vim() {
 
     # Check if space-vim submodule exists
     if [ ! -f "$SPACEVIM_DIR/init.vim" ]; then
-        warning "space-vim submodule not found, initializing..."
+        info "space-vim submodule not found, initializing..."
         cd "$DOTFILES_DIR"
         git submodule update --init --recursive
         cd "$original_dir"
@@ -52,8 +52,12 @@ install_vim() {
     fi
 
     # Install vim plugins (non-interactive mode)
-    info "Installing vim plugins via vim-plug..."
-    vim -E -s -c "source $HOME/.vimrc" -c "PlugInstall --sync" -c "qa" 2>/dev/null || true
+    if [ -d "$HOME/.vim/plugged" ] && [ "$(ls -A "$HOME/.vim/plugged" 2>/dev/null)" ]; then
+        info "Vim plugins already installed, skipping"
+    else
+        info "Installing vim plugins via vim-plug..."
+        vim -E -s -c "source $HOME/.vimrc" -c "PlugInstall --sync" -c "qa" 2>/dev/null || true
+    fi
 
     success "space-vim configured"
 }

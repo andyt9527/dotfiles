@@ -41,8 +41,11 @@ warning() {
     echo -e "${YELLOW}[WARNING]${NC} $*"
 }
 
-# Create symbolic link if source exists
+# Create symbolic link if source exists (skip if already correctly linked)
 lnif() {
+    if [ -L "$2" ] && [ "$(readlink "$2")" = "$1" ]; then
+        return 0
+    fi
     if [ -e "$1" ]; then
         ln -sf "$1" "$2"
         return 0

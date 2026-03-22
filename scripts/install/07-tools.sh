@@ -28,7 +28,7 @@ install_lazygit() {
     fi
 
     if command -v lazygit &> /dev/null; then
-        warning "Lazygit already installed"
+        info "Lazygit already installed"
         return
     fi
 
@@ -62,7 +62,7 @@ install_lazydocker() {
     fi
 
     if command -v lazydocker &> /dev/null; then
-        warning "Lazydocker already installed"
+        info "Lazydocker already installed"
         return
     fi
 
@@ -83,7 +83,7 @@ install_claude_code() {
     fi
 
     if command -v claude &> /dev/null; then
-        warning "Claude Code already installed"
+        info "Claude Code already installed"
         return
     fi
 
@@ -109,7 +109,7 @@ install_codex() {
     fi
 
     if command -v codex &> /dev/null; then
-        warning "Codex already installed"
+        info "Codex already installed"
         return
     fi
 
@@ -135,7 +135,7 @@ install_cc_switch() {
     fi
 
     if command -v cc-switch &> /dev/null; then
-        warning "cc-switch already installed"
+        info "cc-switch already installed"
         return
     fi
 
@@ -147,7 +147,7 @@ install_cc_switch() {
     elif [ "$OS" = "linux" ]; then
         install_cc_switch_linux
     else
-        warning "cc-switch is not supported on this OS"
+        info "cc-switch is not supported on this OS"
         return
     fi
 

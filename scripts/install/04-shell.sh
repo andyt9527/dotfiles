@@ -24,7 +24,7 @@ install_ohmyzsh() {
     fi
 
     if [ -d "$HOME/.oh-my-zsh" ]; then
-        warning "Oh My Zsh already installed"
+        info "Oh My Zsh already installed"
         return
     fi
 
@@ -63,7 +63,7 @@ install_powerlevel10k() {
     local P10K_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
 
     if [ -d "$P10K_DIR" ]; then
-        warning "Powerlevel10k already installed"
+        info "Powerlevel10k already installed"
         return
     fi
 
