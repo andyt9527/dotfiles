@@ -266,37 +266,50 @@ Features:
 ## Directory Structure
 
 ```
-kimi_ubuntu_mac_dotfile/
+dotfiles/
 ├── README.md
+├── CLAUDE.md               # Claude Code guidance
 ├── install.sh              # Main installation script
-├── uninstall.sh            # Uninstallation script
-├── bootstrap.sh            # One-liner bootstrap
-├── config/
-│   ├── p10k.zsh            # Powerlevel10k configuration
-│   ├── lazygit.yml         # Lazygit config
-│   └── lazydocker.yml      # Lazydocker config
-├── git/
-│   ├── gitconfig           # Git configuration
-│   ├── gitconfig-work.example
-│   └── gitconfig-personal.example
-├── oh-my-zsh/
-│   └── patches/            # Oh My Zsh patches
-├── scripts/
-│   ├── utils.sh            # Utility functions
-│   └── update.sh           # Update script
-├── shell/
-│   ├── bashrc              # Bash configuration
-│   └── zshrc               # Zsh configuration (Oh My Zsh + Powerlevel10k)
-├── tig/
-│   ├── tigrc               # Tig configuration
-│   └── tigrc.theme         # Tig color theme
-├── tmux/
-│   └── tmux.conf           # Tmux configuration
-└── space-vim/              # Vim configuration (Git submodule)
-    ├── init.vim            # space-vim entry point
-    ├── init.spacevim       # Default layer configuration template
-    ├── core/               # Core space-vim logic
-    └── layers/             # Layer definitions
+├── uninstall.sh           # Uninstallation script
+├── bootstrap.sh           # One-liner bootstrap
+├── .gitignore
+├── .gitmodules
+├── config/                 # Application configs
+│   ├── p10k.zsh           # Powerlevel10k configuration
+│   ├── lazygit.yml        # Lazygit config
+│   └── lazydocker.yml     # Lazydocker config
+├── git/                   # Git configuration
+│   ├── gitconfig          # Main git config
+│   └── gitconfig.local    # Local overrides (not tracked)
+├── scripts/                # Installation scripts
+│   ├── utils.sh           # Utility functions
+│   ├── update.sh          # Update script
+│   └── install/           # Modular install scripts
+│       ├── 01-prerequisites.sh
+│       ├── 02-packages.sh
+│       ├── 03-modern-tools.sh
+│       ├── 04-shell.sh
+│       ├── 05-tmux.sh
+│       ├── 06-vim.sh
+│       ├── 07-tools.sh
+│       └── 08-configs.sh
+├── shell/                 # Shell configuration
+│   ├── bashrc             # Bash configuration
+│   ├── zshrc              # Zsh configuration
+│   ├── aliases.zsh         # Aliases
+│   ├── exports.zsh        # Environment variables
+│   ├── utils.sh           # Shell utilities
+│   └── zshrc.local        # Local overrides
+├── tig/                   # Tig configuration
+│   ├── tigrc
+│   └── tigrc.theme
+├── tmux/                  # Tmux configuration
+│   └── tmux.conf
+└── space-vim/            # Vim configuration (Git submodule)
+    ├── init.vim           # space-vim entry point
+    ├── init.spacevim      # Default layer configuration
+    ├── core/              # Core space-vim logic
+    └── layers/            # Layer definitions
 ```
 
 ## Customization
@@ -322,11 +335,16 @@ vim ~/.p10k.zsh
 
 ### Git Work/Personal Separation
 
+This dotfiles uses `git/gitconfig.local` for local overrides that are not tracked in git:
+
 ```bash
-# Create work directory and use different git identity
-mkdir -p ~/work
-cp ~/dotfiles/git/gitconfig-work.example ~/.gitconfig-work
-# Edit ~/.gitconfig-work with your work email
+# Edit the local git config
+vim ~/dotfiles/git/gitconfig.local
+
+# Add environment-specific settings:
+# [user]
+#   email = your.work@email.com
+#   name = Your Name
 ```
 
 ## Updating

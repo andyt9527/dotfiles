@@ -13,17 +13,22 @@ Cross-platform dotfiles repository for Ubuntu and macOS featuring Oh My Zsh with
 ./install.sh                    # Basic install
 ./install.sh --with-all          # Full install with all optional tools
 ./install.sh --skip-packages     # Skip package installation
+./install.sh --skip-ohmyzsh      # Skip Oh My Zsh installation
+./install.sh --skip-p10k        # Skip Powerlevel10k installation
 ./install.sh --help              # Show all options
 ```
 
 ### Update
 ```bash
-./scripts/update.sh
+./scripts/update.sh              # Update all plugins and dotfiles
 ```
 
-### Uninstall
+### Verification (during development)
 ```bash
-./uninstall.sh
+bash -n install.sh               # Check install.sh syntax
+bash -n scripts/install/*.sh     # Check all modular scripts
+zsh -n shell/zshrc               # Check zshrc syntax
+./install.sh --help              # Verify install flow works
 ```
 
 ## Architecture
@@ -41,10 +46,8 @@ Cross-platform dotfiles repository for Ubuntu and macOS featuring Oh My Zsh with
   - `07-tools.sh` - lazygit, lazydocker, claude, codex, cc-switch
   - `08-configs.sh` - Symlink all config files
 - `shell/` - Zsh configuration (zshrc, aliases.zsh, exports.zsh, utils.sh)
-- `config/default/` - Application configs (claude.json, codex.json, p10k.zsh, lazygit.yml)
-- `config/personal/` - Personal overrides (not tracked in git)
-- `skills/` - Claude Code and Codex CLI skills
-- `git/gitconfig` - Git configuration with URL rewrites
+- `config/` - Application configs (p10k.zsh, lazygit.yml, lazydocker.yml)
+- `git/` - Git configuration (gitconfig, gitconfig.local)
 - `tmux/tmux.conf` - Tmux configuration (Ctrl+a prefix)
 - `space-vim/` - Vim distribution as Git submodule
 
@@ -55,15 +58,14 @@ Cross-platform dotfiles repository for Ubuntu and macOS featuring Oh My Zsh with
 4. Modules can be skipped via `--skip-*` flags
 
 ### Cross-Platform Patterns
-- `$OS` variable determines platform-specific behavior
+- `$OS` variable determines platform-specific behavior (set by `detect_os()`)
 - Package installations check if already installed before proceeding
 - `brew_package_installed()` / `apt_package_installed()` for platform-specific checks
 - `check_command()` for verifying command availability
 - Shell-agnostic utilities in `shell/utils.sh` (sourced by both bash and zsh)
+- Linux ARM64 is supported (lazygit, cc-switch download correct architecture)
 
 ### Local Overrides
-- `config/personal/claude.json` - Claude Code personal settings
-- `config/personal/codex.json` - Codex CLI personal settings
 - `~/.zshrc.local` - Zsh local settings (sourced at end of zshrc)
 - `~/.p10k.zsh` - Powerlevel10k configuration
 - `~/.vimrc.bundle` - space-vim layer configuration
@@ -91,6 +93,13 @@ Cross-platform dotfiles repository for Ubuntu and macOS featuring Oh My Zsh with
 - URL rewrites for GitHub SSH and internal git mirrors
 - LFS configuration for internal artifacts
 
-### Claude Code & Codex CLI
-- Config in `config/default/` with personal overrides in `config/personal/`
-- Skills symlinked to `~/.claude/skills/` and `~/.cc-switch/skills/`
+## Important Notes
+
+### Powerlevel10k Icons
+Requires Nerd Font (e.g., `brew install --cask font-meslo-lg-nerd-font` on macOS)
+
+### Universal Ctags Required
+space-vim requires Universal Ctags, not BSD/exuberant ctags. The install script builds from source on Linux if needed.
+
+### Git Submodule
+space-vim is a git submodule. Clone with `--recursive` or run `git submodule update --init --recursive`
