@@ -22,12 +22,8 @@ install_vim() {
         cd "$original_dir"
     fi
 
-    # Backup existing vim config
+    # Backup existing vimrc, but keep existing ~/.vim directory
     backup_file "$HOME/.vimrc"
-    if [ -d "$HOME/.vim" ] && [ ! -L "$HOME/.vim" ]; then
-        info "Backing up ~/.vim directory"
-        mv "$HOME/.vim" "$BACKUP_DIR/"
-    fi
 
     # Create vim directories
     mkdir -p "$HOME/.vim/undo"
