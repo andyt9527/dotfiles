@@ -135,17 +135,34 @@ install_cc_switch() {
     fi
 
     if command -v cc-switch &> /dev/null; then
-        info "cc-switch already installed"
-        return
+        # Version check: skip if installed version matches latest
+        local latest_tag
+        latest_tag=$(get_cc_switch_latest_tag)
+        local installed_version
+        installed_version=$(cc-switch --version 2>/dev/null | grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -1 | sed 's/^v//')
+
+        if [ -n "$latest_tag" ] && [ -n "$installed_version" ]; then
+            local latest_ver
+            latest_ver=$(echo "$latest_tag" | sed 's/^v//')
+            if [ "$installed_version" = "$latest_ver" ]; then
+                info "cc-switch already installed (v${installed_version})"
+                return
+            else
+                info "cc-switch v${installed_version} installed, latest is v${latest_ver} — updating..."
+            fi
+        else
+            info "cc-switch already installed"
+            return
+        fi
     fi
 
     info "Installing cc-switch..."
 
     if [ "$OS" = "macos" ]; then
         brew tap farion1231/ccswitch
-        brew install --cask cc-switch
+        brew install --cask farion1231/ccswitch/cc-switch
     elif [ "$OS" = "linux" ]; then
-        install_cc_switch_linux
+        install_cc_switch_linux "$latest_tag"
     else
         info "cc-switch is not supported on this OS"
         return
@@ -158,24 +175,22 @@ install_cc_switch() {
     fi
 }
 
+get_cc_switch_latest_tag() {
+    curl -fsSL https://api.github.com/repos/farion1231/cc-switch/releases/latest | jq -r .tag_name
+}
+
 install_cc_switch_linux() {
-    info "Downloading latest cc-switch release..."
+    local tag="${1:-}"
+    if [ -z "$tag" ]; then
+        tag=$(get_cc_switch_latest_tag)
+    fi
 
-    local tmp
-    tmp=$(mktemp -d)
-    trap 'rm -rf "$tmp"' EXIT
-
-    cd "$tmp" || exit 1
-
-    local TAG
-    TAG=$(curl -fsSL https://api.github.com/repos/farion1231/cc-switch/releases/latest | jq -r .tag_name)
-
-    if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
+    if [ -z "$tag" ] || [ "$tag" = "null" ]; then
         error "Failed to get latest version"
         return 1
     fi
 
-    info "Latest version: $TAG"
+    info "Downloading latest cc-switch release (v${tag})..."
 
     local ARCH
     case "$(uname -m)" in
@@ -187,8 +202,8 @@ install_cc_switch_linux() {
             ;;
     esac
 
-    local FILE="CC-Switch-${TAG}-Linux-${ARCH}.deb"
-    local URL="https://github.com/farion1231/cc-switch/releases/download/${TAG}/${FILE}"
+    local FILE="CC-Switch-${tag}-Linux-${ARCH}.deb"
+    local URL="https://github.com/farion1231/cc-switch/releases/download/${tag}/${FILE}"
 
     info "Downloading $FILE"
     curl -fL -o "$FILE" "$URL"
