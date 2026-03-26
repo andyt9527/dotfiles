@@ -21,7 +21,10 @@ fi
 # =============================================================================
 # Shell-agnostic utilities (sourced from shell/utils.sh)
 # =============================================================================
-ZSH_CONFIG_DIR="${(%):-%x:h}"
+# Resolve symlink ~/.zshrc -> dotfiles/shell/zshrc to find utils.sh
+_zshrc_realpath="${${(M)$(readlink ~/.zshrc):-$HOME/.zshrc}:A}"
+ZSH_CONFIG_DIR="${_zshrc_realpath:h}"
+unset _zshrc_realpath
 if [[ -f "$ZSH_CONFIG_DIR/utils.sh" ]]; then
     source "$ZSH_CONFIG_DIR/utils.sh"
 fi
