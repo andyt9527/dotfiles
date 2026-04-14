@@ -180,10 +180,12 @@ install_cc_switch() {
         return 0
     fi
 
+    # Always fetch latest tag first (needed for Linux install, and for version comparison)
+    local latest_tag
+    latest_tag=$(get_cc_switch_latest_tag)
+
     if command -v cc-switch &> /dev/null; then
         # Version check: skip if installed version matches latest
-        local latest_tag
-        latest_tag=$(get_cc_switch_latest_tag)
         local installed_version
         installed_version=$(cc-switch --version 2>/dev/null | grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -1 | sed 's/^v//')
 
