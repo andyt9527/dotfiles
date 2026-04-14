@@ -16,6 +16,7 @@ install_packages() {
         for pkg in "${packages[@]}"; do
             if ! needs_install "$pkg"; then
                 info "$pkg already installed, skipping"
+                return 0
             elif brew_package_installed "$pkg"; then
                 info "$pkg is already installed, skipping"
             else
@@ -37,6 +38,7 @@ install_packages() {
         for pkg in "${optional_packages[@]}"; do
             if ! needs_install "$pkg"; then
                 info "$pkg already installed, skipping"
+                return 0
             elif brew_package_installed "$pkg"; then
                 info "$pkg is already installed, skipping"
             else
@@ -66,6 +68,7 @@ install_packages() {
                 [ "$pkg" = "silversearcher-ag" ] && cmd_name="ag"
                 if ! needs_install "$cmd_name"; then
                     info "$pkg already installed, skipping"
+                    return 0
                 elif command_exists "$cmd_name" || apt_package_installed "$pkg"; then
                     info "$pkg is already installed, skipping"
                 else
@@ -138,6 +141,7 @@ install_packages() {
         # Build tools
         if ! needs_install cc; then
             info "build-essential is already installed, skipping"
+            return 0
         elif apt_package_installed "build-essential"; then
             info "build-essential is already installed, skipping"
         else
@@ -147,6 +151,7 @@ install_packages() {
         # Install tldr
         if ! needs_install tldr; then
             info "tldr is already installed, skipping"
+            return 0
         elif command_exists tldr; then
             info "tldr is already installed, skipping"
         else
