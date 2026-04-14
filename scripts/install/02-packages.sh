@@ -14,7 +14,9 @@ install_packages() {
 
         info "Installing core packages..."
         for pkg in "${packages[@]}"; do
-            if brew_package_installed "$pkg"; then
+            if ! needs_install "$pkg"; then
+                info "$pkg already installed, skipping"
+            elif brew_package_installed "$pkg"; then
                 info "$pkg is already installed, skipping"
             else
                 info "Installing $pkg..."
@@ -33,7 +35,9 @@ install_packages() {
 
         info "Installing optional packages..."
         for pkg in "${optional_packages[@]}"; do
-            if brew_package_installed "$pkg"; then
+            if ! needs_install "$pkg"; then
+                info "$pkg already installed, skipping"
+            elif brew_package_installed "$pkg"; then
                 info "$pkg is already installed, skipping"
             else
                 info "Installing $pkg..."
@@ -60,7 +64,9 @@ install_packages() {
             for pkg in "${packages[@]}"; do
                 local cmd_name="$pkg"
                 [ "$pkg" = "silversearcher-ag" ] && cmd_name="ag"
-                if command_exists "$cmd_name" || apt_package_installed "$pkg"; then
+                if ! needs_install "$cmd_name"; then
+                    info "$pkg already installed, skipping"
+                elif command_exists "$cmd_name" || apt_package_installed "$pkg"; then
                     info "$pkg is already installed, skipping"
                 else
                     info "Installing $pkg..."
@@ -72,8 +78,36 @@ install_packages() {
         fi
 
         # Universal ctags (required by space-vim)
-        if command_exists ctags && ctags --version 2>/dev/null | grep -q "Universal"; then
-            info "Universal Ctags is already installed, skipping"
+        if ! needs_install ctags; then
+            # ctags command exists, verify it's Universal
+            if ctags --version 2>/dev/null | grep -q "Universal"; then
+                info "Universal Ctags is already installed, skipping"
+            else
+                info "Installing Universal Ctags from source..."
+                local build_deps=("build-essential" "autoconf" "automake" "pkg-config")
+                for dep in "${build_deps[@]}"; do
+                    if ! apt_package_installed "$dep"; then
+                        sudo apt-get install -y "$dep"
+                    fi
+                done
+
+                local original_dir="$(pwd)"
+                rm -rf /tmp/ctags
+                git clone https://github.com/universal-ctags/ctags.git /tmp/ctags
+                cd /tmp/ctags
+                ./autogen.sh
+                ./configure --prefix=/usr/local
+                make
+                sudo make install
+                cd "$original_dir"
+                rm -rf /tmp/ctags
+
+                if command -v /usr/local/bin/ctags &> /dev/null && /usr/local/bin/ctags --version | grep -q "Universal"; then
+                    success "Universal Ctags installed successfully"
+                else
+                    warning "Universal Ctags installation may have failed"
+                fi
+            fi
         else
             info "Installing Universal Ctags from source..."
             local build_deps=("build-essential" "autoconf" "automake" "pkg-config")
@@ -102,14 +136,18 @@ install_packages() {
         fi
 
         # Build tools
-        if apt_package_installed "build-essential"; then
+        if ! needs_install cc; then
+            info "build-essential is already installed, skipping"
+        elif apt_package_installed "build-essential"; then
             info "build-essential is already installed, skipping"
         else
             sudo apt-get install -y build-essential && success "build-essential installed" || warning "Failed to install build-essential"
         fi
 
         # Install tldr
-        if command_exists tldr; then
+        if ! needs_install tldr; then
+            info "tldr is already installed, skipping"
+        elif command_exists tldr; then
             info "tldr is already installed, skipping"
         else
             info "Installing tldr..."
