@@ -16,7 +16,7 @@ install_packages() {
         for pkg in "${packages[@]}"; do
             if ! needs_install "$pkg"; then
                 info "$pkg already installed, skipping"
-                return 0
+                continue
             elif brew_package_installed "$pkg"; then
                 info "$pkg is already installed, skipping"
             else
@@ -38,7 +38,7 @@ install_packages() {
         for pkg in "${optional_packages[@]}"; do
             if ! needs_install "$pkg"; then
                 info "$pkg already installed, skipping"
-                return 0
+                continue
             elif brew_package_installed "$pkg"; then
                 info "$pkg is already installed, skipping"
             else
@@ -68,7 +68,7 @@ install_packages() {
                 [ "$pkg" = "silversearcher-ag" ] && cmd_name="ag"
                 if ! needs_install "$cmd_name"; then
                     info "$pkg already installed, skipping"
-                    return 0
+                    continue
                 elif command_exists "$cmd_name" || apt_package_installed "$pkg"; then
                     info "$pkg is already installed, skipping"
                 else
@@ -85,6 +85,7 @@ install_packages() {
             # ctags command exists, verify it's Universal
             if ctags --version 2>/dev/null | grep -q "Universal"; then
                 info "Universal Ctags is already installed, skipping"
+                continue
             else
                 info "Installing Universal Ctags from source..."
                 local build_deps=("build-essential" "autoconf" "automake" "pkg-config")
@@ -141,7 +142,7 @@ install_packages() {
         # Build tools
         if ! needs_install cc; then
             info "build-essential is already installed, skipping"
-            return 0
+            continue
         elif apt_package_installed "build-essential"; then
             info "build-essential is already installed, skipping"
         else
@@ -151,7 +152,7 @@ install_packages() {
         # Install tldr
         if ! needs_install tldr; then
             info "tldr is already installed, skipping"
-            return 0
+            continue
         elif command_exists tldr; then
             info "tldr is already installed, skipping"
         else
