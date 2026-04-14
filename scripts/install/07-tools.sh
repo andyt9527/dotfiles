@@ -91,7 +91,11 @@ install_lazygit() {
             return 1
         fi
 
-        tar xf lazygit.tar.gz lazygit
+        if ! tar xf lazygit.tar.gz lazygit; then
+            error "Failed to extract lazygit archive"
+            rm -f lazygit.tar.gz
+            return 1
+        fi
         if ! sudo install lazygit /usr/local/bin 2>&1; then
             error "Failed to install lazygit to /usr/local/bin"
             info "Check permissions — you may need sudo"
