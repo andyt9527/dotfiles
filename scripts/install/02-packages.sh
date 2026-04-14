@@ -152,7 +152,7 @@ install_packages() {
         # Install tldr
         if ! needs_install tldr; then
             info "tldr is already installed, skipping"
-            continue
+            return 0
         elif command_exists tldr; then
             info "tldr is already installed, skipping"
         else
