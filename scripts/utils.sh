@@ -58,6 +58,14 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Returns 0 if command is missing (needs install), 1 if present
+# Use this for fast-path pre-checks to skip already-installed tools
+needs_install() {
+    local cmd="$1"
+    command -v "$cmd" >/dev/null 2>&1 && return 1
+    return 0
+}
+
 # Install package based on OS
 install_package() {
     local pkg="$1"
