@@ -188,6 +188,7 @@ install_cc_switch() {
     local latest_tag
     latest_tag=$(get_cc_switch_latest_tag)
 
+    # Check if cc-switch is available via command (DMG or other install)
     if command -v cc-switch &> /dev/null; then
         # Version check: skip if installed version matches latest
         local installed_version
@@ -206,6 +207,12 @@ install_cc_switch() {
             info "cc-switch already installed"
             return 0
         fi
+    fi
+
+    # Check if cc-switch app exists (DMG install to /Applications)
+    if [ -d "/Applications/CC Switch.app" ]; then
+        info "cc-switch already installed (/Applications/CC Switch.app)"
+        return 0
     fi
 
     info "Installing cc-switch..."
