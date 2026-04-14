@@ -30,6 +30,10 @@ install_modern_tools() {
 
         local optional_tools=("duf" "dust" "procs" "bottom")
         for pkg in "${optional_tools[@]}"; do
+            if ! needs_install "$pkg"; then
+                info "$pkg already installed, skipping"
+                continue
+            fi
             if brew_package_installed "$pkg"; then
                 info "$pkg is already installed, skipping"
             else
@@ -77,12 +81,8 @@ install_modern_tools() {
                     info "$tool already installed, skipping"
                     continue
                 fi
-                if command_exists "$cmd_name"; then
-                    info "$tool is already installed, skipping"
-                else
-                    info "Installing $tool via cargo..."
-                    cargo install "$tool" 2>/dev/null && success "$tool installed" || warning "Failed to install $tool"
-                fi
+                info "Installing $tool via cargo..."
+                cargo install "$tool" 2>/dev/null && success "$tool installed" || warning "Failed to install $tool"
             done
         fi
 
@@ -91,8 +91,11 @@ install_modern_tools() {
             info "zoxide already installed, skipping"
         else
             info "Installing zoxide..."
-            curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
-            success "zoxide installed"
+            if curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash; then
+                success "zoxide installed"
+            else
+                error "Failed to install zoxide"
+            fi
         fi
     fi
 
