@@ -85,7 +85,7 @@ install_packages() {
             # ctags command exists, verify it's Universal
             if ctags --version 2>/dev/null | grep -q "Universal"; then
                 info "Universal Ctags is already installed, skipping"
-                continue
+                return 0
             else
                 info "Installing Universal Ctags from source..."
                 local build_deps=("build-essential" "autoconf" "automake" "pkg-config")
@@ -142,7 +142,7 @@ install_packages() {
         # Build tools
         if ! needs_install cc; then
             info "build-essential is already installed, skipping"
-            continue
+            return 0
         elif apt_package_installed "build-essential"; then
             info "build-essential is already installed, skipping"
         else
