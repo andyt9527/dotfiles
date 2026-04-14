@@ -16,6 +16,10 @@ install_modern_tools() {
     if [ "$OS" = "macos" ]; then
         local core_tools=("fd" "bat" "eza" "zoxide" "fzf" "ripgrep")
         for pkg in "${core_tools[@]}"; do
+            if ! needs_install "$pkg"; then
+                info "$pkg already installed, skipping"
+                continue
+            fi
             if brew_package_installed "$pkg"; then
                 info "$pkg is already installed, skipping"
             else
@@ -36,19 +40,19 @@ install_modern_tools() {
 
     elif [ "$OS" = "linux" ]; then
         # Check and install fd-find
-        if command_exists fdfind || command_exists fd; then
-            info "fd is already installed, skipping"
-        else
+        if needs_install fd || needs_install fdfind; then
             info "Installing fd-find..."
             sudo apt-get install -y fd-find && success "fd-find installed" || warning "Failed to install fd-find"
+        else
+            info "fd is already installed, skipping"
         fi
 
         # Check and install bat
-        if command_exists batcat || command_exists bat; then
-            info "bat is already installed, skipping"
-        else
+        if needs_install bat || needs_install batcat; then
             info "Installing bat..."
             sudo apt-get install -y bat && success "bat installed" || warning "Failed to install bat"
+        else
+            info "bat is already installed, skipping"
         fi
 
         # Create symlinks for fd and bat if needed (Ubuntu uses different names)
@@ -69,6 +73,10 @@ install_modern_tools() {
             for tool in "${rust_tools[@]}"; do
                 local cmd_name="$tool"
                 [ "$tool" = "du-dust" ] && cmd_name="dust"
+                if ! needs_install "$cmd_name"; then
+                    info "$tool already installed, skipping"
+                    continue
+                fi
                 if command_exists "$cmd_name"; then
                     info "$tool is already installed, skipping"
                 else
@@ -79,8 +87,8 @@ install_modern_tools() {
         fi
 
         # Install zoxide via install script if not already installed
-        if command_exists zoxide; then
-            info "zoxide is already installed, skipping"
+        if ! needs_install zoxide; then
+            info "zoxide already installed, skipping"
         else
             info "Installing zoxide..."
             curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
