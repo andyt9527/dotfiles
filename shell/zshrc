@@ -270,7 +270,7 @@ bindkey "\C-x\C-e" edit-command-line
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 
 # OpenClaw Completion
-source "/Users/andy/.openclaw/completions/openclaw.zsh"
+#source "/Users/andy/.openclaw/completions/openclaw.zsh"
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!

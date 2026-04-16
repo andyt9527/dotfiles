@@ -10,12 +10,20 @@ Cross-platform dotfiles repository for Ubuntu and macOS featuring Oh My Zsh with
 
 ### Installation
 ```bash
-./install.sh                    # Basic install
-./install.sh --with-all          # Full install with all optional tools
-./install.sh --skip-packages     # Skip package installation
+./install.sh                     # Full installation (default — all optional tools)
+./install.sh --with-all          # Explicitly enable all optional tools
+./install.sh --with-lazygit      # Enable individual optional tools (--with-modern-tools, --with-cc-switch, etc.)
+./install.sh --skip-packages     # Skip packages + all TUI/CLI tools
 ./install.sh --skip-ohmyzsh      # Skip Oh My Zsh installation
-./install.sh --skip-p10k        # Skip Powerlevel10k installation
+./install.sh --skip-p10k         # Skip Powerlevel10k installation
 ./install.sh --help              # Show all options
+```
+
+> **Note:** There are no `--without-*` flags. To skip individual tools, edit `install.sh` and set the corresponding `INSTALL_*` variable to `false`.
+
+### Bootstrap (new machine)
+```bash
+curl -fsSL https://raw.githubusercontent.com/andyt9527/dotfiles/main/bootstrap.sh | bash
 ```
 
 ### Update
@@ -23,83 +31,83 @@ Cross-platform dotfiles repository for Ubuntu and macOS featuring Oh My Zsh with
 ./scripts/update.sh              # Update all plugins and dotfiles
 ```
 
+### Uninstall
+```bash
+./uninstall.sh                   # Remove dotfiles and restore backups
+```
+
 ### Verification (during development)
 ```bash
-bash -n install.sh               # Check install.sh syntax
-bash -n scripts/install/*.sh     # Check all modular scripts
-zsh -n shell/zshrc               # Check zshrc syntax
-./install.sh --help              # Verify install flow works
+./install.sh --help
+bash -n install.sh
+bash -n scripts/utils.sh
+bash -n scripts/install/*.sh
+zsh -n shell/zshrc
 ```
 
 ## Architecture
 
-### Directory Structure
-- `install.sh` - Main installer (delegates to modular scripts)
-- `scripts/utils.sh` - Cross-platform utility functions (OS detection, colors, package checks)
-- `scripts/install/` - Modular installation scripts (executed in order):
-  - `01-prerequisites.sh` - git, curl, wget, node
-  - `02-packages.sh` - tmux, vim, git, tig, tree
-  - `03-modern-tools.sh` - fd, bat, eza, zoxide, fzf, ripgrep
-  - `04-shell.sh` - Oh My Zsh + Powerlevel10k
-  - `05-tmux.sh` - Tmux + TPM
-  - `06-vim.sh` - space-vim
-  - `07-tools.sh` - lazygit, lazydocker, claude, codex, cc-switch
-  - `08-configs.sh` - Symlink all config files
-- `shell/` - Zsh configuration (zshrc, aliases.zsh, exports.zsh, utils.sh)
-- `config/` - Application configs (p10k.zsh, lazygit.yml, lazydocker.yml)
-- `git/` - Git configuration (gitconfig, gitconfig.local)
-- `tmux/tmux.conf` - Tmux configuration (Ctrl+a prefix)
-- `space-vim/` - Vim distribution as Git submodule
+### Modular Installation Scripts
+`scripts/install/` scripts are sourced in order and can be skipped via `--skip-*` flags:
+- `01-prerequisites.sh` — git, curl, wget, node
+- `02-packages.sh` — tmux, vim, git, tig, tree, universal-ctags
+- `03-modern-tools.sh` — fd, bat, eza, zoxide, fzf, ripgrep, duf, dust, procs, bottom
+- `04-shell.sh` — Oh My Zsh + Powerlevel10k
+- `05-tmux.sh` — Tmux + TPM
+- `06-vim.sh` — space-vim (git submodule)
+- `07-tools.sh` — lazygit, lazydocker, claude, codex, cc-switch
+- `08-configs.sh` — Symlink all config files
 
-### Installation Flow
-1. `install.sh` detects OS (macOS/Linux) via `scripts/utils.sh`
-2. Sources all modular scripts from `scripts/install/` in order
-3. Each module handles a specific installation area
-4. Modules can be skipped via `--skip-*` flags
+**Important:** `main()` in `install.sh` calls individual tool functions (`install_lazygit`, `install_lazydocker`, etc.). The `install_tools()` wrapper inside `07-tools.sh` exists for organizational purposes but is **not** invoked by `main()`.
+
+### Key Directories
+- `shell/` — Zsh configuration (zshrc, aliases.zsh, exports.zsh, utils.sh)
+- `config/` — Application configs (p10k.zsh, lazygit.yml, lazydocker.yml)
+- `scripts/utils.sh` — Cross-platform utilities (colors, package checks); sources `shell/utils.sh` for OS detection and command checks
+- `docs/superpowers/` — Design specs and implementation plans
 
 ### Cross-Platform Patterns
-- `$OS` variable determines platform-specific behavior (set by `detect_os()`)
-- Package installations check if already installed before proceeding
-- `brew_package_installed()` / `apt_package_installed()` for platform-specific checks
-- `check_command()` for verifying command availability
-- Shell-agnostic utilities in `shell/utils.sh` (sourced by both bash and zsh)
-- Linux ARM64 is supported (lazygit, cc-switch download correct architecture)
+- `$OS` variable (set by `detect_os()`) controls platform-specific behavior: `macos` or `linux`
+- `needs_install(cmd)` — fast-path helper: returns `0` if `cmd` is missing, `1` if present
+- `brew_package_installed(pkg)` / `apt_package_installed(pkg)` check installed packages
+- `check_command()` / `command_exists()` verify command availability
+- Linux ARM64 supported for lazygit, cc-switch
+
+### Linux-Specific Tool Handling
+- `fd` is installed as `fdfind`; symlinked to `~/.local/bin/fd`
+- `bat` is installed as `batcat`; symlinked to `~/.local/bin/bat`
+- Rust-based tools (`eza`, `zoxide`, `dust`, `duf`, `procs`, `bottom`) install via `cargo` when available
+
+### Installation Patterns
+- **Fast-path checks:** Most installers use `needs_install` to skip already-installed tools
+- **Parallel installs:** In `07-tools.sh`, lazygit, lazydocker, and cc-switch install in parallel background jobs; npm-based tools (Claude Code, Codex) install sequentially
+- **Version-aware skipping:** cc-switch checks installed version against latest GitHub release and skips if up-to-date; also detects `/Applications/CC Switch.app` (DMG install)
 
 ### Local Overrides
-- `~/.zshrc.local` - Zsh local settings (sourced at end of zshrc)
-- `~/.p10k.zsh` - Powerlevel10k configuration
-- `~/.vimrc.bundle` - space-vim layer configuration
-- `git/gitconfig.local` - Environment-specific git settings (included via `[include]`)
+- `~/.zshrc.local` — Zsh local settings (sourced at end of zshrc)
+- `~/.p10k.zsh` — Powerlevel10k configuration (run `p10k configure` to regenerate)
+- `~/.vimrc.bundle` — space-vim layer configuration
+- `git/gitconfig.local` — Environment-specific git settings (included via `[include]`)
 
-## Key Features
+## Development & Troubleshooting
 
-### Shell (Zsh + Oh My Zsh + Powerlevel10k)
-- Plugins: git, zsh-autosuggestions, zsh-syntax-highlighting, zsh-history-substring-search
-- Platform plugins: brew/macos on macOS
-- Modern aliases: eza → ls, bat → cat, fd → find, zoxide → cd
-- Functions: mkcd, up, extract, ff, fs, fcd, fe, fkill
+### When modifying install scripts
+- Keep `set -e` safety in mind; use `return 0/1` inside functions, not `continue` (which breaks in sourced scripts)
+- Fast-path pre-checks should use `needs_install` first, then package-manager checks
+- For macOS brew failures, consider graceful fallbacks (e.g., `brew postinstall tmux`)
 
-### Tmux
-- Prefix: `Ctrl+a`
-- Pane navigation: vim keys (h/j/k/l)
-- Plugins: tmux-resurrect, tmux-continuum, tmux-yank
-
-### Vim (space-vim)
-- Leader: Space
-- Key bindings: SPC f f (find files), SPC b b (buffers), SPC p s (search), SPC g s (git status)
-
-### Git
-- Aliases: lg, lol, st, co, ci, pf, pr, etc.
-- URL rewrites for GitHub SSH and internal git mirrors
-- LFS configuration for internal artifacts
+### Known platform quirks
+- **tmux on macOS:** Brew install may fail; script falls back to `brew postinstall tmux`
+- **Universal Ctags on Linux:** Builds from source if `ctags` is missing or not Universal Ctags
+- **cc-switch on macOS:** Handles both Homebrew cask and existing DMG app installs
 
 ## Important Notes
 
-### Powerlevel10k Icons
-Requires Nerd Font (e.g., `brew install --cask font-meslo-lg-nerd-font` on macOS)
+### space-vim is a Git Submodule
+Clone with `--recursive` or run `git submodule update --init --recursive`
 
 ### Universal Ctags Required
-space-vim requires Universal Ctags, not BSD/exuberant ctags. The install script builds from source on Linux if needed.
+space-vim requires Universal Ctags, not BSD/exuberant ctags. On macOS: `brew install universal-ctags`. On Linux, the install script builds from source if unavailable.
 
-### Git Submodule
-space-vim is a git submodule. Clone with `--recursive` or run `git submodule update --init --recursive`
+### Powerlevel10k Icons
+Requires Nerd Font — install via `brew install --cask font-meslo-lg-nerd-font` on macOS
