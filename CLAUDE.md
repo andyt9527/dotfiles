@@ -70,6 +70,7 @@ zsh -n shell/zshrc
 
 ### Key Directories
 - `shell/` — Zsh configuration (zshrc, aliases.zsh, exports.zsh, utils.sh)
+- `git/` — Git configuration (gitconfig, gitconfig.local)
 - `config/` — Application configs (p10k.zsh, lazygit.yml, lazydocker.yml)
 - `tmux/` — Tmux configuration (tmux.conf)
 - `tig/` — Tig configuration (tigrc, tigrc.theme)
@@ -77,6 +78,7 @@ zsh -n shell/zshrc
 - `scripts/tools/` — Tool install scripts (one per tool)
 - `scripts/configs/` — Declarative config mappings
 - `scripts/tests/` — bats-core tests
+- `test/` — bats-core, bats-support, bats-assert submodules
 - `docs/superpowers/` — Design specs and implementation plans
 
 ### Install Phases
