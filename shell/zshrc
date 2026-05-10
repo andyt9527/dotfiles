@@ -287,3 +287,8 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+
+# ~/.local/bin (used by fd/bat symlinks on Linux, SkillHub CLI, etc.)
+if [ -d "$HOME/.local/bin" ] && [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    export PATH="$HOME/.local/bin:$PATH"
+fi
