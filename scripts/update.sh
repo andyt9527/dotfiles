@@ -8,7 +8,13 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(dirname "$SCRIPT_DIR")"
-source "$SCRIPT_DIR/utils.sh"
+
+# Source lib modules
+source "$SCRIPT_DIR/lib/os.sh"
+source "$SCRIPT_DIR/lib/log.sh"
+source "$SCRIPT_DIR/lib/assert.sh"
+
+export OS=${OS:-$(detect_os)}
 
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║                  Dotfiles Updater                            ║"
@@ -16,10 +22,10 @@ echo "╚═══════════════════════�
 echo ""
 
 # Update dotfiles repository
-if check_command git; then
+if command_exists git; then
     info "Updating dotfiles repository..."
     cd "$DOTFILES_DIR"
-    git pull origin $(git branch --show-current 2>/dev/null || echo main)
+    git pull origin "$(git branch --show-current 2>/dev/null || echo main)"
 
     # Update submodules (space-vim)
     info "Updating submodules..."
@@ -31,7 +37,7 @@ fi
 
 # Update Oh My Zsh
 if [ -d "$HOME/.oh-my-zsh" ]; then
-    if check_command omz; then
+    if command_exists omz; then
         info "Updating Oh My Zsh..."
         omz update || true
     fi
@@ -49,7 +55,7 @@ fi
 
 # Update fzf
 if [ -d "$HOME/.fzf" ]; then
-    if check_command git; then
+    if command_exists git; then
         info "Updating fzf..."
         cd "$HOME/.fzf" && git pull && ./install --bin
     fi
@@ -57,7 +63,7 @@ fi
 
 # Update Tmux plugins
 if [ -d "$HOME/.tmux/plugins/tpm" ]; then
-    if check_command git; then
+    if command_exists git; then
         info "Updating Tmux Plugin Manager..."
         cd "$HOME/.tmux/plugins/tpm" && git pull
     fi
@@ -69,7 +75,7 @@ if [ -d "$HOME/.tmux/plugins/tpm" ]; then
 fi
 
 # Update Vim plugins
-if check_command vim && [ -f "$HOME/.vimrc" ]; then
+if command_exists vim && [ -f "$HOME/.vimrc" ]; then
     info "Updating Vim plugins..."
     vim +PlugUpdate +qall
 fi
