@@ -1,53 +1,61 @@
 #!/usr/bin/env bash
 # =============================================================================
 # Dotfiles Uninstall Script
-# Removes symbolic links created by install.sh
+# Removes symbolic links using the shared config manifest
 # =============================================================================
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/scripts/utils.sh"
+DOTFILES_DIR="$SCRIPT_DIR"
+
+# Source lib modules
+source "$SCRIPT_DIR/scripts/lib/os.sh"
+source "$SCRIPT_DIR/scripts/lib/log.sh"
+source "$SCRIPT_DIR/scripts/lib/assert.sh"
+source "$SCRIPT_DIR/scripts/lib/symlink.sh"
+
+# Set OS
+export OS=${OS:-$(detect_os)}
+
+# Source config manifest (shared with install.sh)
+source "$SCRIPT_DIR/scripts/configs/manifest.sh"
 
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║                  Dotfiles Uninstaller                        ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 
-# Files to remove
-DOTFILES=(
-    "$HOME/.bashrc"
-    "$HOME/.zshrc"
-    "$HOME/.zshrc.local"
-    "$HOME/.tmux.conf"
-    "$HOME/.gitconfig"
-    "$HOME/.tigrc"
-    "$HOME/.tigrc.theme"
-    "$HOME/.vimrc"
-    "$HOME/.vimrc.bundle"
-    "$HOME/.p10k.zsh"
-    "$HOME/.config/starship.toml"
-)
+# Remove symlinks defined in manifest (reverse order)
+info "Removing config symlinks..."
 
-# Platform-specific config paths
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    LAZYGIT_CONFIG="$HOME/Library/Application Support/lazygit/config.yml"
-    LAZYDOCKER_CONFIG="$HOME/Library/Application Support/lazydocker/config.yml"
-else
-    LAZYGIT_CONFIG="$HOME/.config/lazygit/config.yml"
-    LAZYDOCKER_CONFIG="$HOME/.config/lazydocker/config.yml"
-fi
+for (( i=${#CONFIGS[@]}-1; i>=0; i-- )); do
+    entry="${CONFIGS[$i]}"
+    IFS='|' read -r src target platform_flags <<< "$entry"
+    platform="${platform_flags%%:*}"
 
-# Add platform-specific configs
-DOTFILES+=("$LAZYGIT_CONFIG" "$LAZYDOCKER_CONFIG")
+    # Check platform filter
+    if [ "$platform" != "all" ]; then
+        if [ "$platform" = "macos" ] && ! is_macos; then continue; fi
+        if [ "$platform" = "linux" ] && ! is_linux; then continue; fi
+    fi
 
-# Remove symbolic links
-for file in "${DOTFILES[@]}"; do
-    if [ -L "$file" ]; then
-        info "Removing symlink: $file"
-        rm "$file"
-    elif [ -e "$file" ]; then
-        warning "Not a symlink, skipping: $file"
+    # Expand ~ in target
+    target="${target/#\~/$HOME}"
+
+    if [ -L "$target" ]; then
+        info "Removing symlink: $target"
+        rm "$target"
+    elif [ -e "$target" ]; then
+        warning "Not a symlink, skipping: $target"
+    fi
+done
+
+# Remove vim symlinks (not in manifest, created by tools/vim.sh)
+for vimfile in "$HOME/.vimrc" "$HOME/.vimrc.bundle"; do
+    if [ -L "$vimfile" ]; then
+        info "Removing symlink: $vimfile"
+        rm "$vimfile"
     fi
 done
 
