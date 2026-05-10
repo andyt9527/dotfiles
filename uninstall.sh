@@ -2,6 +2,7 @@
 # =============================================================================
 # Dotfiles Uninstall Script
 # Removes symbolic links using the shared config manifest
+# Restores backed-up files from the most recent backup
 # =============================================================================
 
 set -e
@@ -58,6 +59,57 @@ for vimfile in "$HOME/.vimrc" "$HOME/.vimrc.bundle"; do
         rm "$vimfile"
     fi
 done
+
+# Restore backup files from the most recent backup
+restore_backups() {
+    local backup_base="$HOME/.dotfiles_backup"
+    if [ ! -d "$backup_base" ]; then
+        return 0
+    fi
+
+    # Find the most recent backup with a manifest
+    local latest_backup
+    latest_backup=$(ls -1dt "$backup_base"/*/ 2>/dev/null | head -1)
+    if [ -z "$latest_backup" ] || [ ! -f "${latest_backup}manifest.txt" ]; then
+        info "No backup manifest found, skipping restore"
+        return 0
+    fi
+
+    # Strip trailing slash for consistent path handling
+    latest_backup="${latest_backup%/}"
+
+    info "Restoring backup files from $latest_backup..."
+
+    local restored=0
+    while IFS='|' read -r original_path backup_name || [ -n "$original_path" ]; do
+        # Skip empty lines
+        [ -z "$original_path" ] && continue
+
+        local backup_file_path="$latest_backup/$backup_name"
+        if [ ! -f "$backup_file_path" ]; then
+            warning "Backup file missing: $backup_name"
+            continue
+        fi
+
+        if [ -e "$original_path" ]; then
+            warning "Skipping restore of $original_path (already exists)"
+            continue
+        fi
+
+        mkdir -p "$(dirname "$original_path")"
+        mv "$backup_file_path" "$original_path"
+        success "Restored: $original_path"
+        restored=$((restored + 1))
+    done < "$latest_backup/manifest.txt"
+
+    if [ "$restored" -gt 0 ]; then
+        success "Restored $restored backup file(s)"
+    else
+        info "No files needed restoring"
+    fi
+}
+
+restore_backups
 
 # Clean up Powerlevel10k instant prompt cache
 if [ -d "$HOME/.cache" ]; then

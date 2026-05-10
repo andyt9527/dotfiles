@@ -7,6 +7,10 @@ lnif() {
         return 0
     fi
     if [ -e "$1" ]; then
+        if [ "${DRY_RUN:-0}" = "1" ]; then
+            info "[DRY-RUN] Would link: $1 → $2"
+            return 0
+        fi
         ln -sf "$1" "$2"
         return 0
     fi
@@ -16,15 +20,33 @@ lnif() {
 backup_file() {
     local file="$1"
     if [ -e "$file" ] && [ ! -L "$file" ]; then
+        if [ "${DRY_RUN:-0}" = "1" ]; then
+            info "[DRY-RUN] Would back up: $file"
+            return 0
+        fi
         info "Backing up $file"
-        mv "$file" "$BACKUP_DIR/"
+        mkdir -p "$BACKUP_DIR"
+        # Handle basename conflicts (e.g. lazygit/config.yml vs lazydocker/config.yml)
+        local backup_name
+        backup_name="$(basename "$file")"
+        local backup_path="$BACKUP_DIR/$backup_name"
+        local counter=1
+        while [ -e "$backup_path" ]; do
+            backup_name="$(basename "$file").$counter"
+            backup_path="$BACKUP_DIR/$backup_name"
+            counter=$((counter + 1))
+        done
+        mv "$file" "$backup_path"
+        echo "$file|$backup_name" >> "$BACKUP_DIR/manifest.txt"
     fi
 }
 
 link_config() {
     local src="$DOTFILES_DIR/$1"
     local target="$2"
-    mkdir -p "$(dirname "$target")"
+    if [ "${DRY_RUN:-0}" != "1" ]; then
+        mkdir -p "$(dirname "$target")"
+    fi
     backup_file "$target"
     lnif "$src" "$target"
 }

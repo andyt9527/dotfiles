@@ -32,9 +32,6 @@ for tool_file in "$SCRIPT_DIR/scripts/tools/"*.sh; do
     fi
 done
 
-# Create backup directory
-mkdir -p "$BACKUP_DIR"
-
 # Track enabled tools
 ALL_TOOLS=()
 ENABLED_TOOLS=()
