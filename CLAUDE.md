@@ -12,7 +12,7 @@ Cross-platform dotfiles repository for Ubuntu and macOS featuring Oh My Zsh with
 ```bash
 ./install.sh                     # Full installation (default — all optional tools)
 ./install.sh --with-all          # Explicitly enable all optional tools
-./install.sh --with-lazygit      # Enable individual optional tools (--with-modern-tools, --with-cc-switch, etc.)
+./install.sh --with-lazygit      # Enable individual optional tools (--with-modern-tools, --with-lazydocker, --with-claude-code, --with-codex, --with-cc-switch)
 ./install.sh --skip-packages     # Skip packages + all TUI/CLI tools
 ./install.sh --skip-ohmyzsh      # Skip Oh My Zsh installation
 ./install.sh --skip-p10k         # Skip Powerlevel10k installation
@@ -63,6 +63,8 @@ zsh -n shell/zshrc
 ### Key Directories
 - `shell/` — Zsh configuration (zshrc, aliases.zsh, exports.zsh, utils.sh)
 - `config/` — Application configs (p10k.zsh, lazygit.yml, lazydocker.yml)
+- `tmux/` — Tmux configuration (tmux.conf)
+- `tig/` — Tig configuration (tigrc, tigrc.theme)
 - `scripts/utils.sh` — Cross-platform utilities (colors, package checks); sources `shell/utils.sh` for OS detection and command checks
 - `docs/superpowers/` — Design specs and implementation plans
 
@@ -80,7 +82,7 @@ zsh -n shell/zshrc
 
 ### Installation Patterns
 - **Fast-path checks:** Most installers use `needs_install` to skip already-installed tools
-- **Parallel installs:** In `07-tools.sh`, lazygit, lazydocker, and cc-switch install in parallel background jobs; npm-based tools (Claude Code, Codex) install sequentially
+- **Sequential installs:** `main()` calls each tool installer individually and sequentially. An `install_tools()` wrapper in `07-tools.sh` runs some in parallel, but is not invoked by `main()`
 - **Version-aware skipping:** cc-switch checks installed version against latest GitHub release and skips if up-to-date; also detects `/Applications/CC Switch.app` (DMG install)
 
 ### Local Overrides
