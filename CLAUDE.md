@@ -4,22 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Cross-platform dotfiles repository for Ubuntu and macOS featuring Oh My Zsh with Powerlevel10k theme. Provides automated installation and configuration of shell environments, terminal tools, and editors.
+Cross-platform dotfiles repository for Ubuntu and macOS featuring Oh My Zsh with Powerlevel10k theme. Uses a tool-registry architecture with a shared platform abstraction layer.
 
 ## Common Commands
 
 ### Installation
 ```bash
-./install.sh                     # Full installation (default — all optional tools)
-./install.sh --with-all          # Explicitly enable all optional tools
-./install.sh --with-lazygit      # Enable individual optional tools (--with-modern-tools, --with-lazydocker, --with-claude-code, --with-codex, --with-cc-switch)
-./install.sh --skip-packages     # Skip packages + all TUI/CLI tools
-./install.sh --skip-ohmyzsh      # Skip Oh My Zsh installation
-./install.sh --skip-p10k         # Skip Powerlevel10k installation
-./install.sh --help              # Show all options
+./install.sh                          # Full installation
+./install.sh --tools fd,bat,eza       # Install only specified tools
+./install.sh --skip-tools procs       # Skip specific tools
+./install.sh --dry-run                # Preview without executing
+./install.sh --list-tools             # List all available tools
+./install.sh --help                   # Show usage
 ```
-
-> **Note:** There are no `--without-*` flags. To skip individual tools, edit `install.sh` and set the corresponding `INSTALL_*` variable to `false`.
 
 ### Bootstrap (new machine)
 ```bash
@@ -28,80 +25,105 @@ curl -fsSL https://raw.githubusercontent.com/andyt9527/dotfiles/main/bootstrap.s
 
 ### Update
 ```bash
-./scripts/update.sh              # Update all plugins and dotfiles
+./scripts/update.sh                   # Update all plugins and dotfiles
 ```
 
 ### Uninstall
 ```bash
-./uninstall.sh                   # Remove dotfiles and restore backups
+./uninstall.sh                        # Remove dotfiles symlinks (uses shared manifest)
+```
+
+### Testing
+```bash
+./scripts/tests/run_tests.sh          # Run all bats tests
+./scripts/tests/run_tests.sh scripts/tests/test_os.sh  # Run specific test
 ```
 
 ### Verification (during development)
 ```bash
-./install.sh --help
 bash -n install.sh
-bash -n scripts/utils.sh
-bash -n scripts/install/*.sh
+bash -n scripts/lib/*.sh
+bash -n scripts/tools/*.sh
 zsh -n shell/zshrc
 ```
 
 ## Architecture
 
-### Modular Installation Scripts
-`scripts/install/` scripts are sourced in order and can be skipped via `--skip-*` flags:
-- `01-prerequisites.sh` — git, curl, wget, node
-- `02-packages.sh` — tmux, vim, git, tig, tree, universal-ctags
-- `03-modern-tools.sh` — fd, bat, eza, zoxide, fzf, ripgrep, duf, dust, procs, bottom
-- `04-shell.sh` — Oh My Zsh + Powerlevel10k
-- `05-tmux.sh` — Tmux + TPM
-- `06-vim.sh` — space-vim (git submodule)
-- `07-tools.sh` — lazygit, lazydocker, claude, codex, cc-switch
-- `08-configs.sh` — Symlink all config files
+### Tool Registry Pattern
+- `scripts/tools/` — one file per tool, each exports an `install_<tool>()` function
+- `scripts/tools/_template.sh` — copy this to add a new tool
+- Adding a new tool: copy `_template.sh`, edit install function, done
+- Tools are auto-discovered from the `scripts/tools/` directory
 
-**Important:** `main()` in `install.sh` calls individual tool functions (`install_lazygit`, `install_lazydocker`, etc.). The `install_tools()` wrapper inside `07-tools.sh` exists for organizational purposes but is **not** invoked by `main()`.
+### Platform Abstraction Layer (`scripts/lib/`)
+- `os.sh` — `detect_os()`, `is_macos()`, `is_linux()`, `get_arch()`, `assert_supported_os()`
+- `log.sh` — `info()`, `success()`, `warning()`, `error()`, `run_cmd()` (dry-run wrapper)
+- `assert.sh` — `needs_install()`, `command_exists()`
+- `package.sh` — `install_package()`, `install_packages_batch()`, `package_installed()`, `brew_package_installed()`, `apt_package_installed()`
+- `symlink.sh` — `link_config()`, `backup_file()`, `lnif()`
+- `github.sh` — `get_latest_release_tag()`, `download_github_release()`
+
+### Config Manifest
+- `scripts/configs/manifest.sh` — declarative symlink config, shared by install and uninstall
+- Format: `"source_relative|target_path|platform[:flags]"`
+- Single source of truth — eliminates sync issues between install/uninstall
 
 ### Key Directories
 - `shell/` — Zsh configuration (zshrc, aliases.zsh, exports.zsh, utils.sh)
 - `config/` — Application configs (p10k.zsh, lazygit.yml, lazydocker.yml)
 - `tmux/` — Tmux configuration (tmux.conf)
 - `tig/` — Tig configuration (tigrc, tigrc.theme)
-- `scripts/utils.sh` — Cross-platform utilities (colors, package checks); sources `shell/utils.sh` for OS detection and command checks
+- `scripts/lib/` — Shared function library
+- `scripts/tools/` — Tool install scripts (one per tool)
+- `scripts/configs/` — Declarative config mappings
+- `scripts/tests/` — bats-core tests
 - `docs/superpowers/` — Design specs and implementation plans
 
+### Install Phases
+1. **Prerequisites** — Homebrew (macOS), git, curl, wget, node
+2. **Core packages** — tmux, vim, tig, tree, universal-ctags
+3. **Tools** — Each tool from `scripts/tools/` (on demand via CLI)
+4. **Shell** — Oh My Zsh + Powerlevel10k + chsh
+5. **Config symlinks** — Reads manifest.sh
+
+### Dry-Run Mode
+All side-effect operations go through `run_cmd()`. Set `DRY_RUN=1` or use `--dry-run` flag to preview without executing.
+
 ### Cross-Platform Patterns
-- `$OS` variable (set by `detect_os()`) controls platform-specific behavior: `macos` or `linux`
-- `needs_install(cmd)` — fast-path helper: returns `0` if `cmd` is missing, `1` if present
-- `brew_package_installed(pkg)` / `apt_package_installed(pkg)` check installed packages
-- `check_command()` / `command_exists()` verify command availability
-- Linux ARM64 supported for lazygit, cc-switch
+- `$OS` variable (`macos`/`linux`) controls platform behavior
+- `is_macos` / `is_linux` for branching
+- `get_arch()` normalizes `uname -m` to `x86_64`/`aarch64`
+- `assert_supported_os()` guards against unsupported platforms
 
-### Linux-Specific Tool Handling
-- `fd` is installed as `fdfind`; symlinked to `~/.local/bin/fd`
-- `bat` is installed as `batcat`; symlinked to `~/.local/bin/bat`
-- Rust-based tools (`eza`, `zoxide`, `dust`, `duf`, `procs`, `bottom`) install via `cargo` when available
-
-### Installation Patterns
-- **Fast-path checks:** Most installers use `needs_install` to skip already-installed tools
-- **Sequential installs:** `main()` calls each tool installer individually and sequentially. An `install_tools()` wrapper in `07-tools.sh` runs some in parallel, but is not invoked by `main()`
-- **Version-aware skipping:** cc-switch checks installed version against latest GitHub release and skips if up-to-date; also detects `/Applications/CC Switch.app` (DMG install)
+### Linux-Specific Handling
+- `fd` installed as `fdfind`; symlinked to `~/.local/bin/fd`
+- `bat` installed as `batcat`; symlinked to `~/.local/bin/bat`
+- Rust-based tools via `cargo` when available
+- Universal Ctags built from source when unavailable
 
 ### Local Overrides
 - `~/.zshrc.local` — Zsh local settings (sourced at end of zshrc)
-- `~/.p10k.zsh` — Powerlevel10k configuration (run `p10k configure` to regenerate)
+- `~/.p10k.zsh` — Powerlevel10k configuration
 - `~/.vimrc.bundle` — space-vim layer configuration
-- `git/gitconfig.local` — Environment-specific git settings (included via `[include]`)
+- `git/gitconfig.local` — Environment-specific git settings
 
-## Development & Troubleshooting
+## Development
 
-### When modifying install scripts
-- Keep `set -e` safety in mind; use `return 0/1` inside functions, not `continue` (which breaks in sourced scripts)
-- Fast-path pre-checks should use `needs_install` first, then package-manager checks
-- For macOS brew failures, consider graceful fallbacks (e.g., `brew postinstall tmux`)
+### When adding a new tool
+1. Copy `scripts/tools/_template.sh` to `scripts/tools/<name>.sh`
+2. Edit the `install_<name>()` function
+3. If the tool has a config file, add an entry to `scripts/configs/manifest.sh`
+4. No other files need editing
 
-### Known platform quirks
-- **tmux on macOS:** Brew install may fail; script falls back to `brew postinstall tmux`
-- **Universal Ctags on Linux:** Builds from source if `ctags` is missing or not Universal Ctags
-- **cc-switch on macOS:** Handles both Homebrew cask and existing DMG app installs
+### When modifying lib/ modules
+- Each lib module is independently sourceable and testable
+- Write tests first in `scripts/tests/test_<module>.sh`
+- Run `./scripts/tests/run_tests.sh` to verify
+
+### Testing
+- Uses bats-core with bats-support and bats-assert
+- Tests live in `scripts/tests/`
+- Focus on `lib/` module unit tests; tool files validated via `--dry-run`
 
 ## Important Notes
 
@@ -109,7 +131,7 @@ zsh -n shell/zshrc
 Clone with `--recursive` or run `git submodule update --init --recursive`
 
 ### Universal Ctags Required
-space-vim requires Universal Ctags, not BSD/exuberant ctags. On macOS: `brew install universal-ctags`. On Linux, the install script builds from source if unavailable.
+space-vim requires Universal Ctags. On macOS: `brew install universal-ctags`. On Linux, installed from source automatically.
 
 ### Powerlevel10k Icons
 Requires Nerd Font — install via `brew install --cask font-meslo-lg-nerd-font` on macOS

@@ -1,21 +1,18 @@
 #!/usr/bin/env sh
 # =============================================================================
-# Shell-agnostic utility functions for bash and zsh
-# This file can be sourced by both bash and zsh scripts
+# Shell utility functions (for interactive shell use)
 # =============================================================================
 
-# Detect OS type (compatible with both bash and zsh)
+# Detect OS type
 detect_os() {
     case "$(uname -s)" in
-        Linux*)     echo "linux";;
-        Darwin*)    echo "macos";;
-        CYGWIN*)    echo "cygwin";;
-        MINGW*)     echo "mingw";;
-        *)          echo "unknown";;
+        Linux*)     echo "linux" ;;
+        Darwin*)    echo "macos" ;;
+        *)          echo "unknown" ;;
     esac
 }
 
-# Check if command exists (returns 0 if command is available)
+# Check if command exists
 check_command() {
     command -v "$1" >/dev/null 2>&1
 }
