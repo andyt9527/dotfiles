@@ -145,4 +145,4 @@
 
 # Local overrides - environment-specific settings
 [include]
-    path = /Users/andy/dotfiles/git/gitconfig.local
+    path = ~/dotfiles/git/gitconfig.local
