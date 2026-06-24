@@ -21,7 +21,10 @@ Cross-platform dotfiles repository for Ubuntu and macOS featuring Oh My Zsh with
 ### Bootstrap (new machine)
 ```bash
 curl -fsSL https://raw.githubusercontent.com/andyt9527/dotfiles/main/bootstrap.sh | bash
+./install.sh                                              # Run after bootstrap
 ```
+
+> Modern tool usage (eza/bat/fd/rg/dust/duf/procs/btm): see `docs/tools-cheatsheet.md`
 
 ### Update
 ```bash
@@ -114,7 +117,7 @@ All side-effect operations go through `run_cmd()`. Set `DRY_RUN=1` or use `--dry
 - `~/.zshrc.local` — Zsh local settings (sourced at end of zshrc)
 - `~/.p10k.zsh` — Powerlevel10k configuration
 - `~/.vimrc.bundle` — space-vim layer configuration
-- `git/gitconfig.local` — Environment-specific git settings
+- `git/gitconfig.local` — Environment-specific git settings (gitignored; holds enterprise configs like Gerrit URL, LFS, `sslVerify`)
 
 ## Development
 
