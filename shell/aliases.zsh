@@ -21,12 +21,14 @@ alias ....='cd ../../..'
 alias .....='cd ../../../..'
 
 # =============================================================================
-# Listing Aliases (Modern Tools Priority)
+# Modern Tool Short Aliases (non-replacing)
 # =============================================================================
+# Modern CLI tools (eza, bat, fd, rg, dust, duf, procs, btm) are NOT aliased
+# over system binaries. Call them by their real names: bat, fd, rg, dust, duf,
+# procs, btm. The aliases below use NEW names that don't shadow `ls`.
+# See docs/tools-cheatsheet.md for the full mapping.
 
-# eza - modern ls replacement
 if command -v eza &> /dev/null; then
-    alias ls='eza --icons --group-directories-first'
     alias l='eza -lbF --git --icons'
     alias ll='eza -lbGF --git --icons'
     alias llm='eza -lbGd --git --sort=modified'
@@ -34,80 +36,6 @@ if command -v eza &> /dev/null; then
     alias lx='eza -lbhHigmuSa@ --time-style=long-iso --git --color-scale --icons'
     alias lt='eza --tree --level=2 --icons'
     alias llt='eza -lah --tree --level=2 --icons'
-
-# lsd - another modern ls replacement
-elif command -v lsd &> /dev/null; then
-    alias ls='lsd --group-dirs first'
-    alias l='lsd -l'
-    alias ll='lsd -lA'
-    alias la='lsd -A'
-    alias lt='lsd --tree --depth 2'
-    alias lla='lsd -lA --tree --depth 2'
-
-# Fallback to standard ls
-else
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        alias ls='ls --color=auto --group-directories-first'
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-        alias ls='ls -G'
-    fi
-    alias ll='ls -alF'
-    alias la='ls -A'
-    alias l='ls -CF'
-fi
-
-# =============================================================================
-# File Viewing Aliases
-# =============================================================================
-
-# bat - cat with syntax highlighting
-if command -v bat &> /dev/null; then
-    alias cat='bat --paging=never --style=plain'
-    alias batp='bat --paging=never'
-    alias less='bat --paging=always'
-elif command -v batcat &> /dev/null; then
-    # bat is named batcat on some Ubuntu/Debian systems
-    alias cat='batcat --paging=never --style=plain'
-    alias bat='batcat'
-fi
-
-# =============================================================================
-# File System Aliases
-# =============================================================================
-
-# Find replacement (fd)
-if command -v fd &> /dev/null; then
-    alias find='fd'
-fi
-
-# Grep with ripgrep
-if command -v rg &> /dev/null; then
-    alias grep='rg --color=auto'
-    alias rgf='rg --files-with-matches'
-fi
-
-# du replacement (dust)
-if command -v dust &> /dev/null; then
-    alias du='dust'
-fi
-
-# df replacement (duf)
-if command -v duf &> /dev/null; then
-    alias df='duf'
-fi
-
-# ps replacement (procs)
-if command -v procs &> /dev/null; then
-    alias ps='procs'
-fi
-
-# top replacement (btm or btop)
-if command -v btm &> /dev/null; then
-    alias top='btm'
-    alias htop='btm'
-elif command -v btop &> /dev/null; then
-    alias top='btop'
-    alias htop='btop'
 fi
 
 # =============================================================================
