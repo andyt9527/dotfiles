@@ -68,6 +68,13 @@ zsh -n shell/zshrc
 - Format: `"source_relative|target_path|platform[:flags]"`
 - Single source of truth — eliminates sync issues between install/uninstall
 
+### Modern Tool Aliases
+- Modern tools (eza/bat/fd/rg/dust/duf/procs/btm) **do not** alias over system commands — `ps`, `grep`, `top`, `cat`, `find`, `du`, `df`, `less`, `ls` all invoke the system binary
+- Rationale: preserve muscle memory and avoid flag/output drift between scripts and interactive use
+- Only `l`/`ll`/`llm`/`la`/`lx`/`lt`/`llt` are kept as `eza` short aliases (new names, not replacements), guarded by `command -v eza`
+- User-facing reference: `docs/tools-cheatsheet.md`
+- When adding a new tool: register it in `scripts/tools/<name>.sh`; **do not** add an alias in `shell/aliases.zsh` that shadows a system binary
+
 ### Key Directories
 - `shell/` — Zsh configuration (zshrc, aliases.zsh, exports.zsh, utils.sh)
 - `git/` — Git configuration (gitconfig, gitconfig.local)
@@ -137,3 +144,6 @@ space-vim requires Universal Ctags. On macOS: `brew install universal-ctags`. On
 
 ### Powerlevel10k Icons
 Requires Nerd Font — install via `brew install --cask font-meslo-lg-nerd-font` on macOS
+
+### Modern CLI Tools
+The installed modern tools (eza, bat, fd, rg, dust, duf, procs, btm) **do not** replace system commands. Call them by their real names. See `docs/tools-cheatsheet.md` for the mapping.
