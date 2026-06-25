@@ -21,3 +21,19 @@ setup() {
     # since the fix removes the whole block.)
     ! grep -q 'if \[\[ "\$OSTYPE" == "darwin"\* \]\]' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc.local"
 }
+
+@test "shell/zshrc.local does not contain hardcoded /home/andy/ paths" {
+    ! grep -n '/home/andy/' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc.local"
+}
+
+@test "shell/zshrc.local modules.sh source is guarded with [[ -f" {
+    grep -q '\[\[ -f /etc/profile.d/modules.sh \]\]' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc.local"
+}
+
+@test "shell/zshrc.local NPU block is guarded with [[ -d \$HOME/NPU" {
+    grep -q '\[\[ -d "\$HOME/NPU" \]\]' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc.local"
+}
+
+@test "shell/zshrc.local Android SDK block is guarded with [[ -d" {
+    grep -q '\[\[ -d "\$HOME/andywork/sdk-android/Sdk" \]\]' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc.local"
+}
