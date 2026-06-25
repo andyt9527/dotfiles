@@ -68,25 +68,61 @@ install_packages_batch() {
             run_cmd brew install "$pkg" && success "$pkg installed" || warning "Failed to install $pkg"
         done
     elif is_linux; then
-        local needs_update=false
+        local pm
+        if command_exists apt-get; then
+            pm="apt"
+        elif command_exists yum; then
+            pm="yum"
+        elif command_exists pacman; then
+            pm="pacman"
+        else
+            error "No supported package manager found (apt/yum/pacman)"
+            return 1
+        fi
+
+        local needs_install=()
         for pkg in "${pkgs[@]}"; do
-            if ! apt_package_installed "$pkg"; then
-                needs_update=true
-                break
+            if ! _package_installed_linux "$pkg" "$pm"; then
+                needs_install+=("$pkg")
+            else
+                info "$pkg is already installed, skipping"
             fi
         done
-        if [ "$needs_update" = true ]; then
-            run_cmd sudo apt-get update
-            for pkg in "${pkgs[@]}"; do
-                if apt_package_installed "$pkg"; then
-                    info "$pkg is already installed, skipping"
-                    continue
-                fi
-                info "Installing $pkg..."
-                run_cmd sudo apt-get install -y "$pkg" && success "$pkg installed" || warning "Failed to install $pkg"
-            done
-        else
+
+        if [ ${#needs_install[@]} -eq 0 ]; then
             info "All packages already installed"
+            return 0
         fi
+
+        case "$pm" in
+            apt)
+                run_cmd sudo apt-get update
+                for pkg in "${needs_install[@]}"; do
+                    run_cmd sudo apt-get install -y "$pkg" && success "$pkg installed" || warning "Failed to install $pkg"
+                done
+                ;;
+            yum)
+                for pkg in "${needs_install[@]}"; do
+                    run_cmd sudo yum install -y "$pkg" && success "$pkg installed" || warning "Failed to install $pkg"
+                done
+                ;;
+            pacman)
+                run_cmd sudo pacman -Sy --noconfirm
+                for pkg in "${needs_install[@]}"; do
+                    run_cmd sudo pacman -S --noconfirm "$pkg" && success "$pkg installed" || warning "Failed to install $pkg"
+                done
+                ;;
+        esac
     fi
+}
+
+_package_installed_linux() {
+    local pkg="$1"
+    local pm="$2"
+    case "$pm" in
+        apt)    apt_package_installed "$pkg" ;;
+        yum)    rpm -q "$pkg" &>/dev/null ;;
+        pacman) pacman -Q "$pkg" &>/dev/null ;;
+        *)      return 1 ;;
+    esac
 }

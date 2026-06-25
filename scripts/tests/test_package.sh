@@ -102,3 +102,95 @@ setup() {
     run package_installed "git"
     [ "$status" -eq 1 ]
 }
+
+# --- install_packages_batch (yum/pacman dispatch) ---
+
+@test "install_packages_batch on Linux with yum calls yum install, not apt" {
+    command_exists() {
+        [ "$1" = "yum" ]
+    }
+    OS="linux"
+    is_macos() { return 1; }
+    is_linux() { return 0; }
+    _package_installed_linux() { return 1; }
+
+    local cap="$BATS_TMPDIR/pkg_calls"
+    : > "$cap"
+    run_cmd() { echo "$@" >> "$cap"; return 0; }
+
+    run install_packages_batch "pkg-a" "pkg-b"
+    [ "$status" -eq 0 ]
+    local calls
+    calls=$(cat "$cap")
+    [[ "$calls" == *"sudo yum install -y pkg-a"* ]]
+    [[ "$calls" != *"apt-get"* ]]
+}
+
+@test "install_packages_batch on Linux with pacman calls pacman -S, not apt" {
+    command_exists() {
+        [ "$1" = "pacman" ]
+    }
+    OS="linux"
+    is_macos() { return 1; }
+    is_linux() { return 0; }
+    _package_installed_linux() { return 1; }
+
+    local cap="$BATS_TMPDIR/pkg_calls"
+    : > "$cap"
+    run_cmd() { echo "$@" >> "$cap"; return 0; }
+
+    run install_packages_batch "pkg-a"
+    [ "$status" -eq 0 ]
+    local calls
+    calls=$(cat "$cap")
+    [[ "$calls" == *"sudo pacman -S --noconfirm pkg-a"* ]]
+    [[ "$calls" != *"apt-get"* ]]
+}
+
+@test "install_packages_batch on Linux with no supported package manager returns 1" {
+    command_exists() { return 1; }
+    OS="linux"
+    is_macos() { return 1; }
+    is_linux() { return 0; }
+
+    run install_packages_batch "pkg-a"
+    [ "$status" -eq 1 ]
+}
+
+@test "install_packages_batch on Linux with apt and all installed skips install" {
+    command_exists() { [ "$1" = "apt-get" ]; }
+    OS="linux"
+    is_macos() { return 1; }
+    is_linux() { return 0; }
+    _package_installed_linux() { return 0; }
+
+    local cap="$BATS_TMPDIR/pkg_calls"
+    : > "$cap"
+    run_cmd() { echo "$@" >> "$cap"; return 0; }
+
+    run install_packages_batch "pkg-a" "pkg-b"
+    [ "$status" -eq 0 ]
+    local calls
+    calls=$(cat "$cap")
+    [[ "$calls" != *"apt-get install"* ]]
+}
+
+# --- _package_installed_linux helper ---
+
+@test "_package_installed_linux returns 0 for installed apt package" {
+    apt_package_installed() { return 0; }
+    run _package_installed_linux "git" "apt"
+    [ "$status" -eq 0 ]
+}
+
+@test "_package_installed_linux returns 1 for missing yum package" {
+    rpm() { return 1; }
+    run _package_installed_linux "nonexistent" "yum"
+    [ "$status" -eq 1 ]
+}
+
+@test "_package_installed_linux returns 0 for installed pacman package" {
+    pacman() { return 0; }
+    run _package_installed_linux "git" "pacman"
+    [ "$status" -eq 0 ]
+}
