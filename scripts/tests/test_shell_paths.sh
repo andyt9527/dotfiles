@@ -84,8 +84,10 @@ setup() {
 }
 
 @test "shell/zshrc L265-320 does not add /opt/homebrew/bin to PATH unguarded" {
-    # In the Local Customizations section (L265-320), /opt/homebrew/bin must not appear unguarded
+    # In the Local Customizations section (from L265 to EOF), /opt/homebrew/bin
+    # must not appear unguarded. Upper bound is open ($): zshrc grows over time,
+    # and a stale literal would silently shrink the audited region.
     local section
-    section=$(sed -n '265,320p' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc")
+    section=$(sed -n '265,$p' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc")
     ! echo "$section" | grep -q '/opt/homebrew/bin'
 }
