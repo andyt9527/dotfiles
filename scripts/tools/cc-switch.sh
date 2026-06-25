@@ -50,6 +50,8 @@ install_cc_switch() {
         fi
         local arch
         arch=$(get_arch)
+        # cc-switch release assets use 'arm64' (Go convention), not 'aarch64'
+        [[ "$arch" == "aarch64" ]] && arch="arm64"
         local file="CC-Switch-${latest_tag}-Linux-${arch}.deb"
         local url="https://github.com/farion1231/cc-switch/releases/download/${latest_tag}/${file}"
         info "Downloading $file"
