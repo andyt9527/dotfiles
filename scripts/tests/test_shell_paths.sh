@@ -55,3 +55,37 @@ setup() {
     count=$(grep -c '\[\[ -d "\$HOME/\.mavis/bin" \]\]' "$DOTFILES_TEST_PROJECT_DIR/shell/bashrc")
     [ "$count" -eq 1 ]
 }
+
+@test "shell/zshrc does not contain hardcoded /Users/andy/ paths" {
+    ! grep -n '/Users/andy/' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc"
+}
+
+@test "shell/zshrc hardcoded conda block is removed (uses _detect_conda)" {
+    ! grep -q "__conda_setup=\"\$('\/Users/andy" "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc"
+}
+
+@test "shell/zshrc mamba block uses \$HOME/miniforge3 and is guarded" {
+    grep -q '\[\[ -f "\$HOME/miniforge3/bin/mamba" \]\]' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc"
+    grep -q 'export MAMBA_EXE="\$HOME/miniforge3/bin/mamba"' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc"
+}
+
+@test "shell/zshrc jishushell path is guarded" {
+    grep -q '\[\[ -d "\$HOME/\.jishushell/bin" \]\]' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc"
+}
+
+@test "shell/zshrc mavis path is guarded and not duplicated" {
+    local count
+    count=$(grep -c '\[\[ -d "\$HOME/\.mavis/bin" \]\]' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc")
+    [ "$count" -eq 1 ]
+}
+
+@test "shell/zshrc opencode path is guarded" {
+    grep -q '\[\[ -d "\$HOME/\.opencode/bin" \]\]' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc"
+}
+
+@test "shell/zshrc L265-320 does not add /opt/homebrew/bin to PATH unguarded" {
+    # In the Local Customizations section (L265-320), /opt/homebrew/bin must not appear unguarded
+    local section
+    section=$(sed -n '265,320p' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc")
+    ! echo "$section" | grep -q '/opt/homebrew/bin'
+}
