@@ -232,12 +232,17 @@ install_universal_ctags() {
     done
 
     local original_dir="$(pwd)"
-    rm -rf /tmp/ctags
+    run_cmd rm -rf /tmp/ctags
     run_cmd git clone https://github.com/universal-ctags/ctags.git /tmp/ctags
-    cd /tmp/ctags
-    ./autogen.sh && ./configure --prefix=/usr/local && make && run_cmd sudo make install
+    (
+        cd /tmp/ctags
+        run_cmd ./autogen.sh
+        run_cmd ./configure --prefix=/usr/local
+        run_cmd make
+        run_cmd sudo make install
+    )
     cd "$original_dir"
-    rm -rf /tmp/ctags
+    run_cmd rm -rf /tmp/ctags
 
     if command -v /usr/local/bin/ctags &>/dev/null && /usr/local/bin/ctags --version | grep -q "Universal"; then
         success "Universal Ctags installed"
