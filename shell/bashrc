@@ -89,3 +89,9 @@ alias reload='source ~/.bashrc'
 [[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+# jishushell-bin-path
+[[ -d "$HOME/.jishushell/bin" ]] && export PATH="$HOME/.jishushell/bin:$PATH"
+
+# Added by MiniMax Agent / Code (merged)
+[[ -d "$HOME/.mavis/bin" ]] && export PATH="$HOME/.mavis/bin:$PATH"

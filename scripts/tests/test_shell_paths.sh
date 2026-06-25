@@ -41,3 +41,17 @@ setup() {
 @test "shell/zshrc.local does not double the Sdk segment in build-tools path" {
     ! grep -q 'Sdk/Sdk/build-tools' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc.local"
 }
+
+@test "shell/bashrc does not contain hardcoded /Users/andy/ paths" {
+    ! grep -n '/Users/andy/' "$DOTFILES_TEST_PROJECT_DIR/shell/bashrc"
+}
+
+@test "shell/bashrc jishushell path is guarded" {
+    grep -q '\[\[ -d "\$HOME/\.jishushell/bin" \]\]' "$DOTFILES_TEST_PROJECT_DIR/shell/bashrc"
+}
+
+@test "shell/bashrc mavis path is guarded and not duplicated" {
+    local count
+    count=$(grep -c '\[\[ -d "\$HOME/\.mavis/bin" \]\]' "$DOTFILES_TEST_PROJECT_DIR/shell/bashrc")
+    [ "$count" -eq 1 ]
+}
