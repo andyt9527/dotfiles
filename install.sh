@@ -235,7 +235,7 @@ install_universal_ctags() {
     run_cmd rm -rf /tmp/ctags
     run_cmd git clone https://github.com/universal-ctags/ctags.git /tmp/ctags
     (
-        cd /tmp/ctags
+        run_cmd cd /tmp/ctags
         run_cmd ./autogen.sh
         run_cmd ./configure --prefix=/usr/local
         run_cmd make

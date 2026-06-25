@@ -38,10 +38,10 @@ _ctags_block() {
 }
 
 @test "ctags build block does not use unguarded cd" {
-    # cd inside a subshell is fine; bare cd at function scope is the leak.
-    # Anchor to exactly 4 spaces (function-body indent) so a deeper-indented
-    # cd inside a ( ... ) subshell is not flagged.
+    # No bare `cd /tmp/ctags` should appear anywhere in the block — the
+    # production code must wrap every cd in run_cmd so dry-run does not
+    # crash when /tmp/ctags was never created.
     local offending
-    offending=$(_ctags_block | grep -E '^    cd /tmp/ctags' | grep -v 'run_cmd' || true)
+    offending=$(_ctags_block | grep -E '^[[:space:]]*cd /tmp/ctags' | grep -v 'run_cmd' || true)
     [ -z "$offending" ]
 }
