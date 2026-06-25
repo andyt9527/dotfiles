@@ -37,3 +37,7 @@ setup() {
 @test "shell/zshrc.local Android SDK block is guarded with [[ -d" {
     grep -q '\[\[ -d "\$HOME/andywork/sdk-android/Sdk" \]\]' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc.local"
 }
+
+@test "shell/zshrc.local does not double the Sdk segment in build-tools path" {
+    ! grep -q 'Sdk/Sdk/build-tools' "$DOTFILES_TEST_PROJECT_DIR/shell/zshrc.local"
+}
