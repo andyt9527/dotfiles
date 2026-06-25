@@ -53,3 +53,18 @@ setup() {
     run assert_supported_os
     [ "$status" -eq 0 ]
 }
+
+@test "get_arch warns on unknown architecture" {
+    # Source log.sh so warning() is defined
+    source "$DOTFILES_TEST_PROJECT_DIR/scripts/lib/log.sh"
+    uname() { echo "riscv64"; }
+    # warning() in log.sh writes to stdout (no >&2), so `run` captures both
+    # the warning line and the default value in $output.
+    # NOTE: bats 1.13.0 only checks the LAST command's exit code, so the two
+    # substring checks are joined with `&&` to ensure either failure fails
+    # the test.
+    run get_arch
+    unset -f uname
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Unknown architecture"*"riscv64"* ]] && [[ "$output" == *"x86_64"* ]]
+}

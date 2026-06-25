@@ -15,10 +15,22 @@ echo "║           Dotfiles Bootstrap Installer                       ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 
-# Check prerequisites
-if ! command -v git &> /dev/null; then
-    echo "Git is required but not installed. Please install Git first."
-    exit 1
+# Check prerequisites — install git if missing on Linux
+if ! command -v git &>/dev/null; then
+    if [ "$(uname -s)" = "Linux" ]; then
+        if command -v apt-get &>/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y git
+        elif command -v yum &>/dev/null; then
+            sudo yum install -y git
+        else
+            echo "Git is required but not installed, and no supported package manager (apt/yum) found. Please install Git manually." >&2
+            exit 1
+        fi
+    else
+        echo "Git is required but not installed. Please install Git manually." >&2
+        exit 1
+    fi
 fi
 
 # Clone or update repository

@@ -2,6 +2,10 @@
 # =============================================================================
 # Aliases Configuration
 # Cross-platform Zsh Aliases for Ubuntu and macOS
+#
+# This file is self-contained re: OS detection — it loads early in zsh startup
+# before scripts/lib/os.sh is sourced. Use $OSTYPE directly rather than
+# is_macos/is_linux to avoid an implicit load-order dependency.
 # =============================================================================
 alias python=python3
 # =============================================================================

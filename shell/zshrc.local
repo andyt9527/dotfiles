@@ -29,17 +29,6 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 fi
 
 # =============================================================================
-# macOS specific configurations
-# =============================================================================
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # Add macOS-specific configurations here
-    # Example:
-    # export HOMEBREW_PREFIX="/opt/homebrew"
-    # export PATH="$HOMEBREW_PREFIX/bin:$PATH"
-    :
-fi
-
-# =============================================================================
 # Common configurations (cross-platform)
 # =============================================================================
 

@@ -19,10 +19,19 @@ is_linux() {
 }
 
 get_arch() {
-    case "$(uname -m)" in
+    local arch
+    arch="$(uname -m)"
+    case "$arch" in
         x86_64|amd64) echo "x86_64" ;;
         aarch64|arm64) echo "aarch64" ;;
-        *)            echo "x86_64" ;;
+        *)
+            # Log a warning so unknown archs are visible; default to x86_64
+            # for forward-compat (callers expect a value, not an error).
+            if command -v warning &>/dev/null; then
+                warning "Unknown architecture: $arch, defaulting to x86_64"
+            fi
+            echo "x86_64"
+            ;;
     esac
 }
 
