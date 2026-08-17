@@ -40,8 +40,14 @@ fi
 # =============================================================================
 
 # >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-# Detect miniforge3 location (compatible with macOS and Linux)
+# Detect miniforge3 location (compatible with macOS and Linux).
+# Do not use CONDA_PREFIX as a temp var — conda reserves it for the
+# active env. Unsetting it while CONDA_SHLVL>0 crashes later activates:
+# TypeError: expected str, bytes or os.PathLike object, not NoneType
+if [ -n "${CONDA_SHLVL:-}" ] && [ "${CONDA_SHLVL}" != "0" ] && [ -z "${CONDA_PREFIX:-}" ]; then
+    unset CONDA_SHLVL CONDA_DEFAULT_ENV CONDA_PROMPT_MODIFIER
+fi
+
 _detect_conda() {
     local conda_paths=(
         "$HOME/miniforge3"
@@ -57,21 +63,21 @@ _detect_conda() {
     return 1
 }
 
-CONDA_PREFIX=$(_detect_conda)
-if [ -n "$CONDA_PREFIX" ]; then
-    __conda_setup="$('$CONDA_PREFIX/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+_CONDA_ROOT=$(_detect_conda)
+if [ -n "$_CONDA_ROOT" ]; then
+    __conda_setup="$('$_CONDA_ROOT/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
     if [ $? -eq 0 ]; then
         eval "$__conda_setup"
     else
-        if [ -f "$CONDA_PREFIX/etc/profile.d/conda.sh" ]; then
-            . "$CONDA_PREFIX/etc/profile.d/conda.sh"
+        if [ -f "$_CONDA_ROOT/etc/profile.d/conda.sh" ]; then
+            . "$_CONDA_ROOT/etc/profile.d/conda.sh"
         else
-            export PATH="$CONDA_PREFIX/bin:$PATH"
+            export PATH="$_CONDA_ROOT/bin:$PATH"
         fi
     fi
     unset __conda_setup
 fi
-unset CONDA_PREFIX
+unset _CONDA_ROOT
 # <<< conda initialize <<<
 
 export PATH="$HOME/.npm-global/bin:$PATH"
